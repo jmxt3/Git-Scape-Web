@@ -57,12 +57,12 @@ You can build and run the app in a Docker container, suitable for deployment to 
 
 ### 1. Build the Docker Image
 ```bash
-docker build -t gitscape-ai .
+docker build -t git_scape_web .
 ```
 
 ### 2. Run the Docker Container Locally
 ```bash
-docker run -p 8080:8080 gitscape-ai
+docker run -d -p 8080:8080 --name git_scape_web_local git_scape_web
 ```
 
 Then visit [http://localhost:8080](http://localhost:8080) in your browser.
