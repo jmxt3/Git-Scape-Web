@@ -1,3 +1,5 @@
+// Author: Joao Machete
+// Description: Service class for interacting with the Google Gemini API, including chat session management, text summarization, and content generation with Google Search integration. Handles API key management and error handling for AI features.
 
 // Fix: Remove Message from import as it's not an exported member
 import { GoogleGenAI, GenerateContentResponse, Chat } from "@google/genai";
@@ -65,7 +67,7 @@ export class GeminiService {
         contents: prompt,
       });
       // Correct way to get text output as per guidelines
-      return response.text;
+      return response.text ?? '';
     } catch (error: any) {
       console.error("Error summarizing text via Gemini API:", error);
       if (error.message) {
@@ -89,7 +91,7 @@ export class GeminiService {
       });
       
       return {
-        text: response.text,
+        text: response.text ?? '',
         candidates: response.candidates as Candidate[] | undefined
       };
     } catch (error: any) {

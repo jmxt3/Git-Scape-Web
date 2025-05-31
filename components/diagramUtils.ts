@@ -1,3 +1,5 @@
+// Author: Joao Machete
+// Description: Utility functions for transforming a GitHub file tree into a D3-compatible hierarchical structure for visualizations such as file explorer diagrams. Handles conversion of flat GitHub API file lists into nested directory/file nodes, including value sizing for visualization.
 
 import { GithubFile, RawDiagramNode, GithubTreeItem } from '../types'; // Assuming GithubFile is compatible with GithubTreeItem
 
@@ -28,7 +30,7 @@ export function transformGithubTreeToD3Hierarchy(
       const part = pathParts[i];
       // Update accumulated path for the current part
       const newAccumulatedPath = currentPathAccumulated ? `${currentPathAccumulated}/${part}` : part;
-      
+
       let childNode = nodeMap.get(newAccumulatedPath);
 
       if (!childNode) {
@@ -68,11 +70,11 @@ export function transformGithubTreeToD3Hierarchy(
       }
       currentPathAccumulated = newAccumulatedPath; // Update for next iteration
       currentParentNode = childNode; // Move to the child for the next path part
-      
+
       // If currentParentNode became a file somehow (error in logic or data), and it's not the last part, warn and break.
       if (currentParentNode.type === 'file' && i < pathParts.length -1) {
         console.warn("Data inconsistency: file found in intermediate path", currentParentNode.path);
-        break; 
+        break;
       }
     }
   }

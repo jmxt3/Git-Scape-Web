@@ -1,5 +1,5 @@
-
-
+// Author: Joao Machete
+// Description: TypeScript type definitions and interfaces for GitHub API data structures, D3 diagram nodes, chat messages, and local storage caching. Used for type safety and data modeling across the application.
 
 export interface GithubRepoInfo {
   owner: string;

@@ -1,3 +1,6 @@
+// Author: Joao Machete
+// Description: Service class for interacting with the GitHub API, including repository parsing, file tree retrieval, file content fetching, and error handling. Provides utility methods for working with GitHub repositories and files in the application.
+
 import { GITHUB_API_BASE_URL, MAX_FILE_SIZE_BYTES } from '../constants';
 import { GithubRepoInfo, GithubFile, GitHubRepoDetails, GitHubFileContent, GitHubTreeResponse } from '../types';
 

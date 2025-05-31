@@ -25,7 +25,7 @@ export const UrlConverter: React.FC<UrlConverterProps> = ({ initialUrl = '' }) =
           setConvertedUrl(url.toString());
         } else if (inputUrl.includes('github.com')) {
             setConvertedUrl(inputUrl.replace(/github\.com/g, URL_CONVERSION_TARGET_DOMAIN));
-        } else if (inputUrl.includes('hub')) { 
+        } else if (inputUrl.includes('hub')) {
             const replaced = inputUrl.replace(/([a-zA-Z0-9.-]*?)hub([a-zA-Z0-9.-]*?\.[a-zA-Z]{2,})/, `$1diagram$2`);
             if (replaced !== inputUrl) {
                  setConvertedUrl(replaced);

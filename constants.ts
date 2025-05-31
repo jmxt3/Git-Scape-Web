@@ -1,5 +1,5 @@
-
-
+// Author: Joao Machete
+// Description: Centralized application constants for API endpoints, file extension filters, ignored paths, file size limits, model configuration, localStorage keys, and documentation URLs. Used throughout the app for configuration and validation.
 
 export const GITHUB_API_BASE_URL = 'https://api.github.com';
 
@@ -47,7 +47,7 @@ export const URL_CONVERSION_TARGET_DOMAIN = 'gitscape.ai';
 export const GITHUB_TOKEN_LOCAL_STORAGE_KEY = 'githubApiToken';
 export const REPO_URL_LOCAL_STORAGE_KEY = 'gitScapeRepoUrl';
 export const DIGEST_CONTENT_LOCAL_STORAGE_KEY = 'gitScapeDigestContent'; // Kept for reference, but not primary use for full digest
-export const GEMINI_API_KEY_LOCAL_STORAGE_KEY = 'gitScapeGeminiApiKey'; 
+export const GEMINI_API_KEY_LOCAL_STORAGE_KEY = 'gitScapeGeminiApiKey';
 export const CACHED_OUTPUT_PREFIX = 'gitScapeCachedOutput_';
 
 

@@ -1,3 +1,6 @@
+// Author: Joao Machete
+// Description: Global TypeScript declaration file for extending the Window interface to include the PostHog analytics object, enabling type-safe usage of PostHog methods throughout the app.
+
 // global.d.ts
 // This declaration informs TypeScript about the 'posthog' object
 // that is attached to the window by the PostHog snippet.
