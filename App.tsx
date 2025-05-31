@@ -568,7 +568,7 @@ const App: React.FC = () => {
             <h1 className="text-4xl sm:text-5xl sm:pt-12 lg:pt-5 md:text-6xl lg:text-7xl font-bold tracking-tighter w-full inline-block text-center relative">
                 Understand Any Repo
                 <br />
-                in seconds&nbsp;
+                In Seconds&nbsp;
             </h1>
             <svg className="w-16 lg:w-20 h-auto lg:absolute flex-shrink-0 right-0 bottom-0 md:block hidden translate-y-10 md:translate-y-20 lg:translate-y-4 lg:translate-x-full -translate-x-10" viewBox="0 0 92 80" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="m35.213 16.953.595-5.261 2.644 4.587a35.056 35.056 0 0 0 26.432 17.33l5.261.594-4.587 2.644A35.056 35.056 0 0 0 48.23 63.28l-.595 5.26-2.644-4.587a35.056 35.056 0 0 0-26.432-17.328l-5.261-.595 4.587-2.644a35.056 35.056 0 0 0 17.329-26.433Z" fill="#5CF1A4" stroke="#000" strokeWidth="2.868" className="">
