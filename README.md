@@ -51,6 +51,24 @@ Visit [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
+## 🐳 Docker Deployment
+
+You can build and run the app in a Docker container, suitable for deployment to Google Cloud Run or any container platform.
+
+### 1. Build the Docker Image
+```bash
+docker build -t gitscape-ai .
+```
+
+### 2. Run the Docker Container Locally
+```bash
+docker run -p 8080:8080 gitscape-ai
+```
+
+Then visit [http://localhost:8080](http://localhost:8080) in your browser.
+
+---
+
 ## 🧑‍💻 Contributing
 
 We welcome contributions of all kinds! Here’s how to get started:
