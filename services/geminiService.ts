@@ -29,7 +29,7 @@ export class GeminiService {
     // Instead, we prepend the system instruction to the *first user message* or structure
     // the initial `contents` to include it as context.
     // For an ongoing chat, the initial `Message` can serve as a form of system prompt.
-    
+
     // For @google/genai, the system instruction is passed in the config object.
     return this.ai.chats.create({
         model: GEMINI_MODEL_TEXT,
@@ -43,9 +43,8 @@ export class GeminiService {
   // Sends a message to an existing chat session.
   public async sendChatMessage(chat: Chat, userMessage: string): Promise<GenerateContentResponse> {
     try {
+      // Fix: Use correct SendMessageParameters structure
       const response: GenerateContentResponse = await chat.sendMessage({ message: userMessage });
-      // The response already is GenerateContentResponse, so no need to extract .text here.
-      // The caller (RepoChat.tsx) will handle the response object.
       return response;
     } catch (error: any) {
       console.error("Error sending chat message via Gemini API:", error);
@@ -89,7 +88,7 @@ export class GeminiService {
           tools: [{ googleSearch: {} }],
         },
       });
-      
+
       return {
         text: response.text ?? '',
         candidates: response.candidates as Candidate[] | undefined
