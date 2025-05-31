@@ -1,7 +1,5 @@
 # Git Scape AI
 
-![Git Scape AI Banner](https://gitscape.ai/og-image.png)
-
 **Understand any GitHub repository in seconds.**
 
 ---
