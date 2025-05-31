@@ -5,10 +5,10 @@ import { RepoInput } from './components/RepoInput';
 import { GithubTokenModal } from './components/GithubTokenModal';
 import { GeminiApiKeyModal } from './components/GeminiApiKeyModal';
 import { GithubService, GithubFile } from './services/githubService';
-import { OutputTabs } from './components/OutputTabs'; 
+import { OutputTabs } from './components/OutputTabs';
 import { transformGithubTreeToD3Hierarchy } from './components/diagramUtils';
 import { DiagramFullscreenModal } from './components/DiagramFullscreenModal';
-import { 
+import {
   GITHUB_TOKEN_LOCAL_STORAGE_KEY,
   REPO_URL_LOCAL_STORAGE_KEY,
   GEMINI_API_KEY_LOCAL_STORAGE_KEY,
@@ -43,13 +43,13 @@ const MAX_TOTAL_WEBSOCKET_ATTEMPTS = 2; // Initial attempt + 1 retry
 
 const App: React.FC = () => {
   const [repoUrl, setRepoUrl] = useState<string>(() => getFromLocalStorage(REPO_URL_LOCAL_STORAGE_KEY, ''));
-  const [digest, setDigest] = useState<string>(''); 
-  
+  const [digest, setDigest] = useState<string>('');
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [progressMessage, setProgressMessage] = useState<string>('');
-  const [progressPercent, setProgressPercent] = useState<number>(0); 
-  
+  const [progressPercent, setProgressPercent] = useState<number>(0);
+
   const [githubToken, setGithubToken] = useState<string | null>(null);
   const [showTokenModal, setShowTokenModal] = useState<boolean>(false);
 
@@ -97,7 +97,7 @@ const App: React.FC = () => {
       if (cachedDataJSON) {
         try {
           const cachedData: CachedRepoOutput = JSON.parse(cachedDataJSON);
-          
+
           setDigest(cachedData.digest);
           setProcessedRepoName(cachedData.processedRepoName);
           setRepoNameForFilename(cachedData.repoNameForFilename);
@@ -107,11 +107,11 @@ const App: React.FC = () => {
           window.posthog?.capture('output_loaded_from_cache', { repo_url: repoUrl });
         } catch (e) {
           console.warn(`Failed to parse or use cached data for ${repoUrl}:`, e);
-          localStorage.removeItem(cacheKey); 
+          localStorage.removeItem(cacheKey);
         }
       }
     }
-  }, []); 
+  }, []);
 
   useEffect(() => {
     storeInLocalStorage(REPO_URL_LOCAL_STORAGE_KEY, repoUrl || null);
@@ -134,7 +134,7 @@ const App: React.FC = () => {
     }
     setShowTokenModal(false);
   };
-  
+
   const handleClearToken = () => {
     storeInLocalStorage(GITHUB_TOKEN_LOCAL_STORAGE_KEY, null);
     setGithubToken(null);
@@ -185,7 +185,7 @@ const App: React.FC = () => {
             setFilesToRenderInDiagram(diagramFiles);
             const blobFiles = diagramFiles.filter(file => file.type === 'blob');
             finalAnalyzedCountForStateAndCache = blobFiles.length;
-            setFilesAnalyzedCount(finalAnalyzedCountForStateAndCache); 
+            setFilesAnalyzedCount(finalAnalyzedCountForStateAndCache);
             diagramFilesCountForAnalytics = blobFiles.length;
             setProgressMessage('Digest and visualization data ready!');
         } catch (diagramErr: any) {
@@ -194,20 +194,20 @@ const App: React.FC = () => {
     } else {
         setProgressMessage('Digest ready but visualization data unavailable (missing branch info).');
     }
-    
+
     setCurrentDefaultBranch(branchToUse);
-    
+
     const repoDataToCache: CachedRepoOutput = {
       digest: markdownDigest,
-      processedRepoName: `${owner}/${repo}`, 
-      repoNameForFilename: repo, 
+      processedRepoName: `${owner}/${repo}`,
+      repoNameForFilename: repo,
       defaultBranch: branchToUse,
       filesAnalyzedCount: finalAnalyzedCountForStateAndCache,
       filesToRenderInDiagram: diagramFiles,
       timestamp: Date.now(),
     };
 
-    const cacheKey = `${CACHED_OUTPUT_PREFIX}${repoUrl}`; 
+    const cacheKey = `${CACHED_OUTPUT_PREFIX}${repoUrl}`;
     try {
       storeInLocalStorage(cacheKey, JSON.stringify(repoDataToCache));
       window.posthog?.capture('output_saved_to_cache', { repo_url: repoUrl });
@@ -220,8 +220,8 @@ const App: React.FC = () => {
         processed_repo_name: `${owner}/${repo}`,
         default_branch: branchToUse,
         digest_length: markdownDigest.length,
-        digest_files_count: digestFilesCount, 
-        diagram_files_count: diagramFilesCountForAnalytics 
+        digest_files_count: digestFilesCount,
+        diagram_files_count: diagramFilesCountForAnalytics
     });
     setIsLoading(false);
   }, [githubService, repoUrl, setDigest, setCurrentDefaultBranch, setFilesAnalyzedCount, setFilesToRenderInDiagram, setProgressMessage, setIsLoading, setProgressPercent]);
@@ -234,26 +234,26 @@ const App: React.FC = () => {
     }
     window.posthog?.capture('digest_generation_requested_ws', { repo_url: repoUrl });
 
-    storeInLocalStorage('gitScapeDigestContent', null); 
+    storeInLocalStorage('gitScapeDigestContent', null);
 
     setIsLoading(true);
     setError(null);
-    setDigest(''); 
+    setDigest('');
     setProgressMessage('Initializing...');
     setProgressPercent(0);
-    
+
     setProcessedRepoName(undefined);
     setRepoNameForFilename(null);
     setFilesAnalyzedCount(null);
-    setCurrentDefaultBranch(null); 
-    setFilesToRenderInDiagram([]); 
+    setCurrentDefaultBranch(null);
+    setFilesToRenderInDiagram([]);
     currentRepoInfoRef.current = null;
     currentDefaultBranchForRequestRef.current = null;
     wsConnectionAttemptNumberRef.current = 0;
 
 
     if (websocketRef.current && websocketRef.current.readyState !== WebSocket.CLOSED) {
-        websocketRef.current.onclose = null; 
+        websocketRef.current.onclose = null;
         websocketRef.current.close(1000, "New request initiated");
         console.log("Previous WebSocket connection closed due to new request.");
     }
@@ -282,17 +282,17 @@ const App: React.FC = () => {
     }
 
     const { owner, repo } = parsedUrl;
-    currentRepoInfoRef.current = { owner, repo }; 
+    currentRepoInfoRef.current = { owner, repo };
     const currentRepoName = `${owner}/${repo}`;
-    setProcessedRepoName(currentRepoName); 
-    setRepoNameForFilename(repo); 
+    setProcessedRepoName(currentRepoName);
+    setRepoNameForFilename(repo);
 
     let defaultBranchForThisRequest: string | null = null;
     try {
       setProgressMessage('Fetching repository details...');
-      setProgressPercent(2); 
+      setProgressPercent(2);
       defaultBranchForThisRequest = await githubService.getDefaultBranch(owner, repo);
-      currentDefaultBranchForRequestRef.current = defaultBranchForThisRequest; 
+      currentDefaultBranchForRequestRef.current = defaultBranchForThisRequest;
       setProgressMessage('Repository details fetched. Connecting to server...');
     } catch (branchError: any) {
       console.error('Failed to fetch default branch:', branchError);
@@ -324,7 +324,7 @@ const App: React.FC = () => {
         } else {
           wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
         }
-        
+
         const wsUrl = new URL(`${wsScheme}://${wsHost}/ws/converter`);
         wsUrl.searchParams.append('repo_url', encodeURIComponent(repoUrl));
         if (githubToken) {
@@ -336,8 +336,8 @@ const App: React.FC = () => {
           websocketRef.current = ws;
 
           ws.onopen = () => {
-            setProgressMessage(`Connection attempt ${attemptNumber} successful. Starting repository processing...`);
-            setProgressPercent(5); 
+            setProgressMessage(`Starting repository processing...`);
+            setProgressPercent(5);
           };
 
           ws.onmessage = async (event) => {
@@ -349,7 +349,7 @@ const App: React.FC = () => {
                 console.error("Received non-string WebSocket message:", rawEventData);
                 setError("Received unexpected binary data from server.");
                 setIsLoading(false);
-                websocketRef.current?.close(1003, "Unsupported data type"); 
+                websocketRef.current?.close(1003, "Unsupported data type");
                 return;
             }
 
@@ -358,11 +358,11 @@ const App: React.FC = () => {
             } catch (jsonError) {
                 console.error("Received non-JSON string from WebSocket:", rawEventData, jsonError);
                 setError(`Received unparseable/non-JSON message from server: ${String(rawEventData).substring(0, 100)}...`);
-                setIsLoading(false); 
-                websocketRef.current?.close(1011, "Unexpected non-JSON message from server"); 
+                setIsLoading(false);
+                websocketRef.current?.close(1011, "Unexpected non-JSON message from server");
                 return;
             }
-            
+
             try {
                 if (!parsedMessageData || typeof parsedMessageData.type !== 'string') {
                     throw new Error("Parsed WebSocket JSON message lacks a 'type' string field.");
@@ -378,23 +378,23 @@ const App: React.FC = () => {
                         }
                         break;
                     case 'final_digest':
-                    case 'digest_complete': 
-                        const markdownDigest = parsedMessageData.digest; 
+                    case 'digest_complete':
+                        const markdownDigest = parsedMessageData.digest;
                         if (typeof markdownDigest !== 'string' || markdownDigest.trim() === '') {
                             throw new Error(`WebSocket '${parsedMessageData.type}' message returned an empty or invalid digest.`);
                         }
-                        
+
                         const branchFromMessage = parsedMessageData.default_branch;
                         const branchForProcessing = branchFromMessage || currentDefaultBranchForRequestRef.current;
                         const digestFilesCount = parsedMessageData.files_analyzed_count !== undefined ? Number(parsedMessageData.files_analyzed_count) : null;
-                        
+
                         if (!currentRepoInfoRef.current) {
                             throw new Error("Repository owner/name info missing for final processing.");
                         }
                         const { owner: currentOwner, repo: currentRepo } = currentRepoInfoRef.current;
 
                         await processSuccessfulDigestData(markdownDigest, currentOwner, currentRepo, branchForProcessing, digestFilesCount);
-                        
+
                         websocketRef.current?.close(1000, `Process completed successfully (${parsedMessageData.type})`);
                         break;
                     case 'error':
@@ -405,7 +405,7 @@ const App: React.FC = () => {
                         setIsLoading(false);
                         setProgressPercent(0);
                         window.posthog?.capture('digest_generation_failed_ws', {
-                          repo_url: repoUrl, 
+                          repo_url: repoUrl,
                           error_message: errorMessage,
                         });
                         websocketRef.current?.close(1000, "Server error indicated in JSON message");
@@ -414,11 +414,11 @@ const App: React.FC = () => {
                         console.warn("Received WebSocket JSON message with unhandled type:", parsedMessageData);
                         setProgressMessage(`Unhandled server update type: ${parsedMessageData.type}`);
                 }
-            } catch (processingError: any) { 
+            } catch (processingError: any) {
                 console.error("Error processing parsed WebSocket JSON:", processingError, "Data:", parsedMessageData, "Original:", rawEventData);
                 setError(`Client-side error processing server JSON: ${processingError.message}. Raw: ${String(rawEventData).substring(0,100)}...`);
                 setProgressMessage('Error processing server update.');
-                setIsLoading(false); 
+                setIsLoading(false);
                 websocketRef.current?.close(4001, "Client-side processing error of server JSON");
             }
           };
@@ -447,7 +447,7 @@ const App: React.FC = () => {
 
           ws.onclose = (event) => {
             console.log(`WebSocket connection attempt ${attemptNumber} closed:`, event.code, event.reason, 'wasClean:', event.wasClean);
-            websocketRef.current = null; 
+            websocketRef.current = null;
 
             if (!event.wasClean && !digest && isLoading) { // Check isLoading to ensure this is for current request
                 handleFailedConnectionAttempt('closed uncleanly', event);
@@ -470,7 +470,7 @@ const App: React.FC = () => {
             }
           };
 
-        } catch (err: any) { 
+        } catch (err: any) {
           console.error(`Error setting up WebSocket (attempt ${attemptNumber}):`, err);
           if (attemptNumber < MAX_TOTAL_WEBSOCKET_ATTEMPTS) {
             initiateWebSocketConnection(); // Retry
@@ -496,7 +496,7 @@ const App: React.FC = () => {
     return () => {
       if (websocketRef.current) {
         console.log("App component unmounting. Closing WebSocket.");
-        websocketRef.current.onclose = null; 
+        websocketRef.current.onclose = null;
         websocketRef.current.onerror = null;
         websocketRef.current.onmessage = null;
         websocketRef.current.onopen = null;
@@ -521,7 +521,7 @@ const App: React.FC = () => {
       const parsed = githubService.parseGitHubUrl(repoUrl);
       if (parsed) {
         setProcessedRepoName(`${parsed.owner}/${parsed.repo}`);
-        if (!repoNameForFilename) { 
+        if (!repoNameForFilename) {
             setRepoNameForFilename(parsed.repo);
         }
       }
@@ -533,7 +533,7 @@ const App: React.FC = () => {
     setRepoNameForModal(repoNameModal);
     setDefaultBranchForModal(branch);
     setShowDiagramFullscreenModal(true);
-    document.body.style.overflow = 'hidden'; 
+    document.body.style.overflow = 'hidden';
     window.posthog?.capture('diagram_fullscreen_opened', { repo_name: repoNameModal });
   }, []);
 
@@ -542,11 +542,11 @@ const App: React.FC = () => {
     setDiagramDataForModal(null);
     setRepoNameForModal(undefined);
     setDefaultBranchForModal(null);
-    document.body.style.overflow = ''; 
+    document.body.style.overflow = '';
   }, []);
-  
-  const showOutputArea = (!isLoading && (digest || (diagramData && filesToRenderInDiagram.length > 0)) && !error) || 
-                         (!isLoading && processedRepoName && digest); 
+
+  const showOutputArea = (!isLoading && (digest || (diagramData && filesToRenderInDiagram.length > 0)) && !error) ||
+                         (!isLoading && processedRepoName && digest);
 
 
   return (
@@ -557,7 +557,7 @@ const App: React.FC = () => {
         onToggleGeminiApiModal={() => setShowGeminiApiModal(true)}
         hasUserGeminiApiKey={!!userProvidedGeminiApiKey}
       />
-      <div className="mb-6 mt-6"> 
+      <div className="mb-6 mt-6">
         <div className="relative w-full max-w-4xl mx-auto flex sm:flex-row flex-col justify-center items-start sm:items-center pt-8 sm:pt-0">
             <svg className="h-auto w-16 sm:w-20 md:w-24 flex-shrink-0 p-2 md:relative sm:absolute lg:absolute left-0 lg:-translate-x-full md:translate-x-10 sm:-translate-y-16 md:-translate-y-0 -translate-x-2 lg:-translate-y-10" viewBox="0 0 91 98" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="m35.878 14.162 1.333-5.369 1.933 5.183c4.47 11.982 14.036 21.085 25.828 24.467l5.42 1.555-5.209 2.16c-11.332 4.697-19.806 14.826-22.888 27.237l-1.333 5.369-1.933-5.183C34.56 57.599 24.993 48.496 13.201 45.114l-5.42-1.555 5.21-2.16c11.331-4.697 19.805-14.826 22.887-27.237Z" fill="#FE4A60" stroke="#000" strokeWidth="3.445">
@@ -577,7 +577,7 @@ const App: React.FC = () => {
                 </path>
             </svg>
         </div>
-        
+
         <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto px-4">
           <div className="bg-slate-800/60 backdrop-blur-md p-6 rounded-xl shadow-xl border border-slate-700/80 hover:border-slate-600 transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-2xl">
             <div className="flex items-center mb-4">
@@ -590,7 +590,7 @@ const App: React.FC = () => {
             </div>
             <p className="text-sm text-slate-300 leading-relaxed">Your AI-Ready code digest that converts any Git repository into clean text, making it easy to use with your preferred AI models.</p>
           </div>
-          
+
           <div className="bg-slate-800/60 backdrop-blur-md p-6 rounded-xl shadow-xl border border-slate-700/80 hover:border-slate-600 transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-2xl">
             <div className="flex items-center mb-4">
               <div className="p-2 bg-green-500/20 rounded-full mr-3 shrink-0">
@@ -632,11 +632,11 @@ const App: React.FC = () => {
                 ></div>
               </div>
             )}
-            <RepoInput 
-              repoUrl={repoUrl} 
-              setRepoUrl={setRepoUrl} 
-              onGenerate={handleGenerateDigest} 
-              isLoading={isLoading} 
+            <RepoInput
+              repoUrl={repoUrl}
+              setRepoUrl={setRepoUrl}
+              onGenerate={handleGenerateDigest}
+              isLoading={isLoading}
             />
             {isLoading && progressMessage && (
               <p className="mt-3 text-sm text-violet-400 text-center">{progressMessage}</p>
@@ -647,7 +647,7 @@ const App: React.FC = () => {
               </p>
             )}
           </section>
-          
+
           {showOutputArea && (
             <section id="output-area">
               <OutputTabs
@@ -670,7 +670,7 @@ const App: React.FC = () => {
           made with ❤️ by <a href="https://www.linkedin.com/in/jmachete/" target="_blank" rel="noopener noreferrer">João Machete</a>
         </p>
       </footer>
-      
+
       {showTokenModal && (
         <GithubTokenModal
           isOpen={showTokenModal}
@@ -695,7 +695,7 @@ const App: React.FC = () => {
             onClose={handleCloseDiagramFullscreenModal}
             data={diagramDataForModal}
             repoName={repoNameForModal}
-            defaultBranch={defaultBranchForModal || ''} 
+            defaultBranch={defaultBranchForModal || ''}
          />
       )}
     </div>
