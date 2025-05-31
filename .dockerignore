@@ -5,6 +5,3 @@ Dockerfile
 node_modules
 npm-debug.log
 README.md
-
-# Add any other files or directories that are not needed for the build
-# or in the final image, for example, local development configs or test files.
