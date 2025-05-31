@@ -116,7 +116,7 @@ Looking to automate repository analysis, generate digests, or build your own int
 ## 📚 Resources
 - [Gemini API Key Docs](https://ai.google.dev/gemini-api/docs/api-key)
 - [GitHub PAT Docs](https://github.com/settings/tokens/new?scopes=repo&description=GitRepoDigestAI)
-- [Project Website](https://gitscape.ai/)
+- [Git Scape AI Website](https://gitscape.ai/)
 - [Git Scape API (Backend)](https://github.com/jmxt3/Git-Scape-API)
 
 ---
@@ -129,6 +129,6 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## 🙏 Acknowledgements
 
-Created by [João Machete](https://github.com/joaomachete) and contributors.
+Created by [João Machete](https://github.com/jmxt3) and contributors.
 
 If you like this project, please ⭐️ the repo and share your feedback!
