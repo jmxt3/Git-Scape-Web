@@ -51,15 +51,17 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
         <div className="flex items-center space-x-3">
           {/* GitHub Star Button */}
-          <GitHubButton
-            href="https://github.com/jmxt3/Git-Scape-Web"
-            data-color-scheme="no-preference: dark; light: dark; dark: dark;"
-            data-size="large"
-            data-show-count="true"
-            aria-label="Star jmxt3/Git-Scape-Web on GitHub"
-          >
-            Stars
-          </GitHubButton>
+          <div className="hidden sm:block">
+            <GitHubButton
+              href="https://github.com/jmxt3/Git-Scape-Web"
+              data-color-scheme="no-preference: dark; light: dark; dark: dark;"
+              data-size="large"
+              data-show-count="true"
+              aria-label="Star jmxt3/Git-Scape-Web on GitHub"
+            >
+              Stars
+            </GitHubButton>
+          </div>
           <button
             onClick={handleToggleGeminiModal}
             title={hasUserGeminiApiKey ? "Update or Clear Your Gemini API Key" : "API Key"}
