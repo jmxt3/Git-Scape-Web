@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Git Scape AI - Understand & Chat with GitHub Repositories</title>
+  <meta name="description" content="Instantly generate AI-ready code digests, visualize repository structures, and chat with your codebase using Git Scape AI. Understand any GitHub repository in seconds.">
+  <meta name="keywords" content="GitHub, AI, code analysis, repository digest, code visualization, AI chat, developer tools, programming, software engineering, code understanding, Git Scape">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gitscape.ai/">
+  <meta property="og:title" content="Git Scape AI - Understand & Chat with GitHub Repositories">
+  <meta property="og:description" content="Instantly generate AI-ready code digests, visualize repository structures, and chat with your codebase using Git Scape AI. Understand any GitHub repository in seconds.">
+  <meta property="og:image" content="https://gitscape.ai/og-image.png">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://gitscape.ai/">
+  <meta property="twitter:title" content="Git Scape AI - Understand & Chat with GitHub Repositories">
+  <meta property="twitter:description" content="Instantly generate AI-ready code digests, visualize repository structures, and chat with your codebase using Git Scape AI. Understand any GitHub repository in seconds.">
+  <meta property="twitter:image" content="https://gitscape.ai/og-image.png">
+
+  <link rel="canonical" href="https://gitscape.ai/">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cstyle%3E.bg %7B fill: %231e293b; %7D .bracket %7B fill: %23818cf8; stroke: %23a5b4fc; stroke-width:4; %7D .spark %7B fill: %23fde047; font-size: 48px; font-family: Arial, sans-serif; %7D%3C/style%3E%3Crect class='bg' width='100' height='100' rx='15'/%3E%3Cpath class='bracket' d='M35 20 Q20 50 35 80' /%3E%3Cpath class='bracket' d='M65 20 Q80 50 65 80' /%3E%3Ctext x='40' y='68' class='spark'%3E⚡%3C/text%3E%3C/svg%3E">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<style>
+  /* Custom scrollbar styling for a more modern dark theme */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #1e293b; /* slate-800 */
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #475569; /* slate-600 */
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #64748b; /* slate-500 */
+  }
+  /* Ensure root element takes full height */
+  html, body, #root {
+    height: 100%;
+  }
+  body {
+    overscroll-behavior-y: none; /* Prevent pull-to-refresh on mobile */
+  }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.1.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.0.1",
+    "d3": "https://esm.sh/d3@^7.9.0",
+    "react-markdown": "https://esm.sh/react-markdown@^9.0.1",
+    "rehype-highlight": "https://esm.sh/rehype-highlight@^7.0.0",
+    "posthog-js/": "https://esm.sh/posthog-js@^1.248.1/"
+  }
+}
+</script>
+<script>
+  !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+  posthog.init('phc_yBJIW0c4aLB5ZJ47zkb1UWpMt1xzQDxr3EftDKWK4bR', {
+      api_host: 'https://us.i.posthog.com',
+      person_profiles: 'always', // Recommended for person profiles
+      // You can add other PostHog config options here if needed
+      // loaded: function(posthog) { // Optional: callback when PostHog is loaded
+      //    console.log('PostHog loaded successfully');
+      // }
+  });
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-slate-900 text-slate-200">
+  <div id="root" class="h-full"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "name": "Git Scape AI",
+  "description": "Git Scape AI: Instantly generate AI-ready text digests of GitHub codebases, visualize repository structures with interactive diagrams, and engage in contextual AI-powered chat to understand, debug, and refactor code. Supports public and private repositories.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
