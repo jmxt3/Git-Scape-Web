@@ -1,14 +1,9 @@
-
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { GeminiService } from '../services/geminiService';
 import { LoadingSpinner } from './LoadingSpinner';
 import { ChatMessage, Candidate } from '../types';
 import { API_KEY_ERROR_MESSAGE, MAX_CHAT_DIGEST_LENGTH } from '../constants';
-import { Chat, GenerateContentResponse } from '@google/genai';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
-// Removed: import { usePostHog } from 'posthog-js/react';
 
 interface RepoChatProps {
   digest: string;
@@ -85,73 +80,48 @@ const ParagraphWithHighlightedFilenames: React.FC<any> = ({ node, children, clas
 
 
 export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvidedGeminiApiKey }) => {
-  // Removed: const posthog = usePostHog();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  const [chatSession, setChatSession] = useState<Chat | null>(null);
-  const geminiServiceRef = useRef<GeminiService | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const currentRepoNameRef = useRef<string | null>(null);
+  const [systemInstruction, setSystemInstruction] = useState<string>('');
 
 
+  // Set up system instruction and greeting when digest/repoName/API key changes
   useEffect(() => {
     if (!userProvidedGeminiApiKey) {
-      geminiServiceRef.current = null;
-      setChatSession(null);
       setError(API_KEY_ERROR_MESSAGE);
-      setMessages([]); 
+      setMessages([]);
+      setSystemInstruction('');
       return;
     }
-
-    try {
-      if (!geminiServiceRef.current || geminiServiceRef.current.apiKey !== userProvidedGeminiApiKey) {
-        geminiServiceRef.current = new GeminiService(userProvidedGeminiApiKey);
-      }
-      setError(null); 
-
-      if (digest && repoName) {
-        if (repoName !== currentRepoNameRef.current || !chatSession) {
-          currentRepoNameRef.current = repoName;
-          let truncatedDigest = digest;
-          if (digest.length > MAX_CHAT_DIGEST_LENGTH) {
-            console.warn(`Digest length (${digest.length}) exceeds max (${MAX_CHAT_DIGEST_LENGTH}). Truncating for chat system prompt.`);
-            truncatedDigest = digest.substring(0, MAX_CHAT_DIGEST_LENGTH);
-          }
-          const systemInstruction = `You are a senior software engineering specialized in analyzing and discussing the content of the GitHub repository named "${repoName}". The following is a text digest of this repository's codebase. Use this digest as your primary source of information to answer questions. If a question is outside the scope of this digest, politely state that. Do not make up information not present in the digest. Ensure all code blocks in your responses are formatted with Markdown language specifiers (e.g., \`\`\`javascript ... \`\`\`).
-
-          Repository Digest for ${repoName}:
-          ---
-          ${truncatedDigest}
-          ---
-          `;
-          const newChat = geminiServiceRef.current.createChatSession(systemInstruction);
-          setChatSession(newChat);
-          
-          const randomGreeting = GREETING_MESSAGES[Math.floor(Math.random() * GREETING_MESSAGES.length)];
-          const initialAiMessage: ChatMessage = {
-            id: crypto.randomUUID(),
-            text: randomGreeting,
-            sender: 'ai',
-            timestamp: new Date(),
-          };
-          setMessages([initialAiMessage]);
-          window.posthog?.capture('chat_session_started', { repo_name: currentRepoNameRef.current });
+    setError(null);
+    if (digest && repoName) {
+      if (repoName !== currentRepoNameRef.current) {
+        currentRepoNameRef.current = repoName;
+        let truncatedDigest = digest;
+        if (digest.length > MAX_CHAT_DIGEST_LENGTH) {
+          truncatedDigest = digest.substring(0, MAX_CHAT_DIGEST_LENGTH);
         }
-      } else { 
-        setChatSession(null);
-        setMessages([]);
-        currentRepoNameRef.current = null;
+        const sysInstruction = `You are a senior software engineering specialized in analyzing and discussing the content of the GitHub repository named "${repoName}". The following is a text digest of this repository's codebase. Use this digest as your primary source of information to answer questions. If a question is outside the scope of this digest, politely state that. Do not make up information not present in the digest. Ensure all code blocks in your responses are formatted with Markdown language specifiers (e.g., \`\`\`javascript ... \`\`\`).\n\nRepository Digest for ${repoName}:\n---\n${truncatedDigest}\n---\n`;
+        setSystemInstruction(sysInstruction);
+        const randomGreeting = GREETING_MESSAGES[Math.floor(Math.random() * GREETING_MESSAGES.length)];
+        const initialAiMessage: ChatMessage = {
+          id: crypto.randomUUID(),
+          text: randomGreeting,
+          sender: 'ai',
+          timestamp: new Date(),
+        };
+        setMessages([initialAiMessage]);
       }
-    } catch (e: any) {
-      console.error("Failed to initialize GeminiService or Chat:", e);
-      setError(`Failed to initialize AI Service: ${e.message}. Please check your API key.`);
-      geminiServiceRef.current = null;
-      setChatSession(null);
+    } else {
+      setMessages([]);
+      setSystemInstruction('');
+      currentRepoNameRef.current = null;
     }
-  }, [userProvidedGeminiApiKey, digest, repoName, chatSession]); 
+  }, [userProvidedGeminiApiKey, digest, repoName]);
 
 
   const scrollToBottom = () => {
@@ -160,14 +130,30 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
 
   useEffect(scrollToBottom, [messages]);
 
+
+  // Helper to format history for API (exclude greeting AI message)
+  const getHistoryForApi = () => {
+    // Exclude the first AI greeting message
+    return messages.filter((m, idx) => idx !== 0).map(m => ({ sender: m.sender, text: m.text }));
+  };
+
+
+  // Helper to get API base URL
+  const API_BASE_URL = "https://git-scape-api-678713936945.us-west1.run.app";
+
+
   const handleSendMessage = useCallback(async () => {
-    if (!userInput.trim() || !chatSession || !geminiServiceRef.current || isLoading) return;
+    if (!userInput.trim() || isLoading) return;
 
     if (!userProvidedGeminiApiKey) {
-        setError("Please provide your Gemini API Key to use the chat.");
-        return;
+      setError("Please provide your Gemini API Key to use the chat.");
+      return;
     }
 
+    if (!systemInstruction) {
+      setError("System instruction not set. Try regenerating the digest.");
+      return;
+    }
     const newUserMessage: ChatMessage = {
       id: crypto.randomUUID(),
       text: userInput,
@@ -175,7 +161,6 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
       timestamp: new Date(),
     };
     setMessages(prev => [...prev, newUserMessage]);
-    
     window.posthog?.capture('chat_message_sent_by_user', {
       repo_name: repoName,
       message_length: userInput.length,
@@ -185,27 +170,40 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
     setError(null);
 
     try {
-      const response: GenerateContentResponse = await geminiServiceRef.current.sendChatMessage(chatSession, newUserMessage.text);
-      
-      const aiResponseText = response.text;
+      const payload = {
+        api_key: userProvidedGeminiApiKey,
+        system_instruction: systemInstruction,
+        history: getHistoryForApi(),
+        user_message: newUserMessage.text,
+      };
+      // Use absolute API URL if VITE_API_BASE_URL is set, else fallback to relative
+      const apiUrl = `${API_BASE_URL}/chat/gemini`;
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'accept': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`API Error: ${response.status} ${errText}`);
+      }
+      const data = await response.json();
+      const aiResponseText = data.text;
       if (typeof aiResponseText !== 'string') {
         throw new Error("Received unexpected response format from AI.");
       }
-      
       const aiMessage: ChatMessage = {
         id: crypto.randomUUID(),
         text: aiResponseText,
         sender: 'ai',
         timestamp: new Date(),
-        candidates: response.candidates as Candidate[] | undefined,
+        candidates: data.raw?.candidates as Candidate[] | undefined,
       };
       setMessages(prev => [...prev, aiMessage]);
       window.posthog?.capture('chat_ai_response_received', {
         repo_name: repoName,
-        had_grounding_chunks: !!(response.candidates && response.candidates.some(c => c.groundingMetadata?.groundingChunks?.length)),
         response_length: aiResponseText.length,
       });
-
     } catch (e: any) {
       console.error('Error sending message:', e);
       const errorMessageText = e.message || 'Could not get a response from the AI.';
@@ -225,7 +223,8 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
     } finally {
       setIsLoading(false);
     }
-  }, [userInput, chatSession, isLoading, userProvidedGeminiApiKey, repoName]); 
+  }, [userInput, isLoading, userProvidedGeminiApiKey, repoName, systemInstruction, messages]);
+
 
   if (!userProvidedGeminiApiKey) {
     return (
@@ -237,21 +236,21 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
       </div>
     );
   }
-  
+
   if (!digest || !repoName) {
     return (
-        <div className="flex items-center justify-center h-64 text-slate-400">
-            Code digest must be generated first to enable the AI Assistant.
-        </div>
+      <div className="flex items-center justify-center h-64 text-slate-400">
+        Code digest must be generated first to enable the AI Assistant.
+      </div>
     );
   }
-  
+
   const placeholderText = !userProvidedGeminiApiKey ? "Set API Key to chat" : "Ask about the repository content...";
 
   return (
     <div className="flex flex-col h-full w-full">
       <h3 className="text-lg font-medium text-sky-400 mb-3">Chat with Repository: <span className="font-normal text-slate-300">{repoName}</span></h3>
-      <div className="flex flex-col h-[70vh] max-h-[600px] bg-slate-900/95 backdrop-blur-sm rounded-lg shadow-xl border border-slate-700">        
+      <div className="flex flex-col h-[70vh] max-h-[600px] bg-slate-900/95 backdrop-blur-sm rounded-lg shadow-xl border border-slate-700">
         <div className="flex-grow overflow-y-auto p-4 space-y-4">
           {messages.map(msg => {
             const baseBubbleClasses = "px-4 py-2.5 rounded-lg shadow-md w-auto";
@@ -259,11 +258,11 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
 
             if (msg.sender === 'user') {
               senderSpecificClasses = 'bg-sky-600 text-white rounded-br-none max-w-xs md:max-w-md lg:max-w-lg ml-auto mr-1.5';
-            } else { 
+            } else {
               if (msg.error) {
                 senderSpecificClasses = 'bg-red-900/30 text-slate-100 rounded-bl-none max-w-[90%] border border-red-700';
               } else {
-                senderSpecificClasses = 'text-slate-100 rounded-bl-none max-w-[90%]'; 
+                senderSpecificClasses = 'text-slate-100 rounded-bl-none max-w-[90%]';
               }
             }
             const finalBubbleClasses = `${baseBubbleClasses} ${senderSpecificClasses}`;
@@ -292,7 +291,7 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
                               children,
                               ...props
                             }: {
-                              node?: any; 
+                              node?: any;
                               inline?: boolean;
                               className?: string;
                               children?: React.ReactNode;
@@ -351,7 +350,7 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
         {error && !isLoading && !messages.some(m => m.error && m.text.includes(error)) && (
             <p className="p-4 text-sm text-red-400 border-t border-slate-700">{error}</p>
         )}
-        
+
         <div className="p-4 border-t border-slate-700">
           <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex items-center space-x-2 mb-0">
             <input
@@ -359,19 +358,19 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
               placeholder={placeholderText}
-              disabled={isLoading || !chatSession || !userProvidedGeminiApiKey}
+              disabled={isLoading || !userProvidedGeminiApiKey}
               className="flex-grow px-4 py-2 border border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 bg-slate-800/80 text-slate-100 placeholder-sky-400/80 disabled:opacity-70"
               aria-label="Chat input"
             />
             <button
               type="submit"
-              disabled={isLoading || !userInput.trim() || !chatSession || !userProvidedGeminiApiKey }
+              disabled={isLoading || !userInput.trim() || !userProvidedGeminiApiKey }
               className="px-4 py-2 text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-sky-500 disabled:bg-slate-500 disabled:cursor-not-allowed transition-colors"
               aria-label="Send chat message"
             >
               {isLoading ? <LoadingSpinner className="w-5 h-5" /> : (
                 <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20" className="w-5 h-5 transform rotate-90">
-                  <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 16.571V11a1 1 0 112 0v5.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
+                  <path d="M10.293 15.707a1 1 0 001.414 0l6-6a1 1 0 00-1.414-1.414L11 12.586V3a1 1 0 10-2 0v9.586L3.707 8.293A1 1 0 002.293 9.707l6 6z" />
                 </svg>
               )}
             </button>
