@@ -317,9 +317,9 @@ const App: React.FC = () => {
             setProgressMessage('Connecting to server for processing...');
         }
 
-        const wsHost = "https://api.gitscape.ai";
+        const wsHost = "api.gitscape.ai";
         let wsScheme: string;
-        if (wsHost === "https://api.gitscape.ai") {
+        if (wsHost === "api.gitscape.ai") {
           wsScheme = "wss";
         } else {
           wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
