@@ -139,7 +139,7 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
 
 
   // Helper to get API base URL
-  const API_BASE_URL = "https://git-scape-api-678713936945.us-east1.run.app";
+  const API_BASE_URL = "https://api.gitscape.ai";
 
 
   const handleSendMessage = useCallback(async () => {
