@@ -319,7 +319,7 @@ const App: React.FC = () => {
 
         const wsHost = "https://api.gitscape.ai";
         let wsScheme: string;
-        if (wsHost === "https://api.gitscape.ai";
+        if (wsHost === "https://api.gitscape.ai") {
           wsScheme = "wss";
         } else {
           wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
