@@ -81,7 +81,6 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const currentRepoNameRef = useRef<string | null>(null);
   const [systemInstruction, setSystemInstruction] = useState<string>('');
-  const [conversationHistory, setConversationHistory] = useState<ChatMessage[]>([]);
 
 
   // Set up system instruction and greeting when digest/repoName/API key changes
@@ -106,7 +105,7 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
         const initialAiMessage: ChatMessage = {
           id: crypto.randomUUID(),
           text: randomGreeting,
-          sender: 'assistant',
+          sender: 'ai',
           timestamp: new Date(),
         };
         setMessages([initialAiMessage]);
@@ -134,7 +133,7 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
 
 
   // Helper to get API base URL
-  const API_BASE_URL = "https://api.gitscape.ai"; // Use HTTPS to match working curl
+  const API_BASE_URL = "https://api.gitscape.ai";
 
 
   const handleSendMessage = useCallback(async () => {
@@ -149,10 +148,6 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
       setError("System instruction not set. Try regenerating the digest.");
       return;
     }
-
-    // Prepare history from messages *before* adding the new user message for the current API call
-    const currentHistoryForApi = getHistoryForApi();
-
     const newUserMessage: ChatMessage = {
       id: crypto.randomUUID(),
       text: userInput,
@@ -160,7 +155,6 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
       timestamp: new Date(),
     };
     setMessages(prev => [...prev, newUserMessage]);
-    handleNewMessage(newUserMessage); // Call handleNewMessage here
     window.posthog?.capture('chat_message_sent_by_user', {
       repo_name: repoName,
       message_length: userInput.length,
@@ -174,38 +168,31 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
       const payload = {
         api_key: userProvidedGeminiApiKey,
         system_instruction: systemInstruction,
-        history: currentHistoryForApi,
+        history: getHistoryForApi(),
         user_message: newUserMessage.text,
+        // user_message: "Hi, I have a question about the repository.",
       };
 
       // Use absolute API URL for the POST request
       const apiUrl = `${API_BASE_URL}/chat/gemini`;
-      console.log('[RepoChat] Attempting to fetch from URL:', apiUrl);
-      console.log('[RepoChat] Request payload:', JSON.stringify(payload, null, 2));
-
       const response = await fetch(apiUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'accept': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-
-      console.log('[RepoChat] Fetch response status:', response.status);
-      console.log('[RepoChat] Fetch response ok:', response.ok);
-
       if (!response.ok) {
         const errText = await response.text();
-        console.error('[RepoChat] API Error Response Text:', errText);
         throw new Error(`API Error: ${response.status} ${errText}`);
       }
       const data = await response.json();
       const aiResponseText = data.text;
       if (typeof aiResponseText !== 'string') {
-        throw new Error(`Received unexpected response format from AI. Expected string, got: ${typeof aiResponseText}`);
+        throw new Error("Received unexpected response format from AI.");
       }
       const aiMessage: ChatMessage = {
         id: crypto.randomUUID(),
         text: aiResponseText,
-        sender: 'assistant',
+        sender: 'ai',
         timestamp: new Date(),
         candidates: data.raw?.candidates as Candidate[] | undefined,
       };
@@ -215,13 +202,12 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
         response_length: aiResponseText.length,
       });
     } catch (e: any) {
-      console.error('[RepoChat] Error sending message (full error object):', e);
-      console.error(`[RepoChat] Error details - Name: ${e.name}, Message: ${e.message}, Stack: ${e.stack}`);
+      console.error('Error sending message:', e);
       const errorMessageText = e.message || 'Could not get a response from the AI.';
       const errorMessage: ChatMessage = {
         id: crypto.randomUUID(),
         text: `Error: ${errorMessageText}`,
-        sender: 'assistant',
+        sender: 'ai',
         timestamp: new Date(),
         error: true,
       };
@@ -235,31 +221,6 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
       setIsLoading(false);
     }
   }, [userInput, isLoading, userProvidedGeminiApiKey, repoName, systemInstruction, messages]);
-
-
-  // Check if digest is available in localStorage
-  useEffect(() => {
-    const cachedData = localStorage.getItem('repoChatCache');
-    if (cachedData) {
-      const parsedData = JSON.parse(cachedData);
-      if (parsedData.digest === digest) {
-        setConversationHistory(parsedData.conversationHistory || []);
-      }
-    }
-  }, [digest]);
-
-  // Persist conversation history in localStorage
-  useEffect(() => {
-    localStorage.setItem(
-      'repoChatCache',
-      JSON.stringify({ digest, conversationHistory })
-    );
-  }, [digest, conversationHistory]);
-
-
-  const handleNewMessage = (newMessage: ChatMessage) => {
-    setConversationHistory((prevHistory) => [...prevHistory, newMessage]);
-  };
 
 
   if (!userProvidedGeminiApiKey) {
@@ -306,13 +267,13 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
             return (
               <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`flex items-start w-full ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                  {msg.sender === 'assistant' && (
+                  {msg.sender === 'ai' && (
                     <div className={`p-2.5 mx-1.5 rounded-full self-start mt-1.5 shrink-0 shadow-md bg-slate-600 text-slate-100`}>
                       <AiIcon className="w-6 h-6" />
                     </div>
                   )}
                   <div className={finalBubbleClasses}>
-                    {msg.sender === 'assistant' ? (
+                    {msg.sender === 'ai' ? (
                       <div className="prose prose-sm prose-invert max-w-none">
                         <ReactMarkdown
                           rehypePlugins={[rehypeHighlight]}
@@ -355,7 +316,7 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
                     ) : (
                       <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
                     )}
-                    {msg.sender === 'assistant' && msg.candidates && msg.candidates.length > 0 && msg.candidates[0].groundingMetadata?.groundingChunks && (
+                    {msg.sender === 'ai' && msg.candidates && msg.candidates.length > 0 && msg.candidates[0].groundingMetadata?.groundingChunks && (
                       <div className="mt-2 pt-2 border-t border-slate-600">
                         <p className="text-xs font-semibold text-slate-400 mb-1">Sources:</p>
                         <ul className="list-disc list-inside space-y-0.5">

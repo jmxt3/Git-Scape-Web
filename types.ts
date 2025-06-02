@@ -91,7 +91,7 @@ export interface RawDiagramNode {
 export interface ChatMessage {
   id: string;
   text: string;
-  sender: 'user' | 'ai';
+  sender: 'user' | 'assistant';
   timestamp: Date;
   error?: boolean;
   candidates?: Candidate[]; // For AI messages, to store grounding metadata if available
