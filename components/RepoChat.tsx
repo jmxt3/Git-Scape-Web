@@ -128,7 +128,7 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
   // Helper to format history for API (exclude greeting AI message)
   const getHistoryForApi = () => {
     // Exclude the first AI greeting message
-    return messages.filter((m, idx) => idx !== 0).map(m => ({ sender: m.sender, text: m.text }));
+    return messages.filter((_, idx) => idx !== 0).map(({ sender, text }) => ({ sender, text }));
   };
 
 
