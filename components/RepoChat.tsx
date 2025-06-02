@@ -164,13 +164,15 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
     setError(null);
 
     try {
+      // Ensure the payload matches the OpenAPI schema
       const payload = {
         api_key: userProvidedGeminiApiKey,
         system_instruction: systemInstruction,
         history: getHistoryForApi(),
         user_message: newUserMessage.text,
       };
-      // Use absolute API URL if VITE_API_BASE_URL is set, else fallback to relative
+
+      // Use absolute API URL for the POST request
       const apiUrl = `${API_BASE_URL}/chat/gemini`;
       const response = await fetch(apiUrl, {
         method: 'POST',
