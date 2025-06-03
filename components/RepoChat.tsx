@@ -186,40 +186,41 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
 
       // Use absolute API URL for the POST request
       const apiUrl = `${API_BASE_URL}/chat/gemini`;
-      console.log('[RepoChat] Attempting to fetch from URL:', apiUrl);
-      console.log('[RepoChat] Request payload:', JSON.stringify(payload, null, 2));
 
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'accept': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'accept': 'application/json' },
+          body: JSON.stringify(payload),
+        });
 
-      console.log('[RepoChat] Fetch response status:', response.status);
-      console.log('[RepoChat] Fetch response ok:', response.ok);
+        if (!response.ok) {
+          const errText = await response.text();
+          console.error('[RepoChat] API Error Response Text:', errText);
+          throw new Error(`API Error: ${response.status} ${errText}`);
+        }
 
-      if (!response.ok) {
-        const errText = await response.text();
-        console.error('[RepoChat] API Error Response Text:', errText);
-        throw new Error(`API Error: ${response.status} ${errText}`);
+        const data = await response.json();
+        if (typeof data.text !== 'string') {
+          throw new Error(`Unexpected response format. Expected string, got: ${typeof data.text}`);
+        }
+
+        const aiMessage: ChatMessage = {
+          id: crypto.randomUUID(),
+          text: data.text,
+          sender: 'assistant',
+          timestamp: new Date(),
+          candidates: data.raw?.candidates as Candidate[] | undefined,
+        };
+        setMessages(prev => [...prev, aiMessage]);
+        window.posthog?.capture('chat_ai_response_received', {
+          repo_name: repoName,
+          response_length: data.text.length,
+        });
+      } catch (error) {
+        console.error('[RepoChat] Fetch error:', error);
+        setError('Failed to fetch AI response. Please try again later.');
       }
-      const data = await response.json();
-      const aiResponseText = data.text;
-      if (typeof aiResponseText !== 'string') {
-        throw new Error(`Received unexpected response format from AI. Expected string, got: ${typeof aiResponseText}`);
-      }
-      const aiMessage: ChatMessage = {
-        id: crypto.randomUUID(),
-        text: aiResponseText,
-        sender: 'assistant',
-        timestamp: new Date(),
-        candidates: data.raw?.candidates as Candidate[] | undefined,
-      };
-      setMessages(prev => [...prev, aiMessage]);
-      window.posthog?.capture('chat_ai_response_received', {
-        repo_name: repoName,
-        response_length: aiResponseText.length,
-      });
     } catch (e: any) {
       console.error('[RepoChat] Error sending message (full error object):', e);
       console.error(`[RepoChat] Error details - Name: ${e.name}, Message: ${e.message}, Stack: ${e.stack}`);

@@ -17,7 +17,7 @@ export class GithubService {
     return MAX_FILE_SIZE_BYTES;
   }
 
-  private async request<T,>(endpoint: string): Promise<T> {
+  private async request<T>(endpoint: string): Promise<T> {
     const headers: HeadersInit = {
       'Accept': 'application/vnd.github.v3+json',
     };
@@ -25,35 +25,22 @@ export class GithubService {
       headers['Authorization'] = `Bearer ${this.apiToken}`;
     }
 
-    const response = await fetch(`${GITHUB_API_BASE_URL}${endpoint}`, {
-      headers,
-    });
+    try {
+      const response = await fetch(`${GITHUB_API_BASE_URL}${endpoint}`, {
+        headers,
+      });
 
-    if (!response.ok) {
-      let errorPayload: { message?: string } = {};
-      try {
-        errorPayload = await response.json();
-      } catch (e) {
-        // JSON parsing failed, errorPayload.message will be undefined.
-        // This can happen if the error response isn't valid JSON.
-        console.warn("Failed to parse error response JSON from GitHub API.");
+      if (!response.ok) {
+        const errorPayload = await response.json().catch(() => ({}));
+        const errorMessage = errorPayload.message || response.statusText || 'Unknown API error';
+        throw new Error(`GitHub API request failed: ${response.status} ${errorMessage}`);
       }
 
-      const status = response.status;
-      // Prioritize error message from GitHub's JSON payload, then fallback to statusText.
-      const errorMessage = errorPayload.message || response.statusText || 'Unknown API error';
-
-      if (status === 401) {
-          throw new Error(
-            `GitHub API request failed: 401 Unauthorized. Your GitHub token may be invalid or expired.`
-          );
-      }
-      // For other errors, include status and GitHub's message or statusText.
-      throw new Error(
-        `GitHub API request failed: ${status} ${errorMessage}`
-      );
+      return response.json() as Promise<T>;
+    } catch (error) {
+      console.error(`Error during fetch to ${endpoint}:`, error);
+      throw error;
     }
-    return response.json() as Promise<T>;
   }
 
   public parseGitHubUrl(url: string): GithubRepoInfo | null {
