@@ -72,9 +72,6 @@ const App: React.FC = () => {
   const [repoNameForFilename, setRepoNameForFilename] = useState<string | null>(
     null
   );
-  const [filesAnalyzedCount, setFilesAnalyzedCount] = useState<number | null>(
-    null
-  );
   const [currentDefaultBranch, setCurrentDefaultBranch] = useState<
     string | null
   >(null);
@@ -131,7 +128,6 @@ const App: React.FC = () => {
           setProcessedRepoName(cachedData.processedRepoName);
           setRepoNameForFilename(cachedData.repoNameForFilename);
           setCurrentDefaultBranch(cachedData.defaultBranch);
-          setFilesAnalyzedCount(cachedData.filesAnalyzedCount);
           setFilesToRenderInDiagram(cachedData.filesToRenderInDiagram || []);
           window.posthog?.capture("output_loaded_from_cache", {
             repo_url: repoUrl,
@@ -219,8 +215,6 @@ const App: React.FC = () => {
           setFilesToRenderInDiagram(diagramFiles);
           const blobFiles = diagramFiles.filter((file) => file.type === "blob");
           finalAnalyzedCountForStateAndCache = blobFiles.length;
-          setFilesAnalyzedCount(finalAnalyzedCountForStateAndCache);
-          diagramFilesCountForAnalytics = blobFiles.length;
           setProgressMessage("Digest and visualization data ready!");
         } catch (diagramErr: any) {
           console.error(
@@ -269,7 +263,6 @@ const App: React.FC = () => {
       repoUrl,
       setDigest,
       setCurrentDefaultBranch,
-      setFilesAnalyzedCount,
       setFilesToRenderInDiagram,
       setProgressMessage,
       setIsLoading,
@@ -296,7 +289,6 @@ const App: React.FC = () => {
 
     setProcessedRepoName(undefined);
     setRepoNameForFilename(null);
-    setFilesAnalyzedCount(null);
     setCurrentDefaultBranch(null);
     setFilesToRenderInDiagram([]);
     currentRepoInfoRef.current = null;
@@ -670,7 +662,6 @@ const App: React.FC = () => {
     processSuccessfulDigestData,
     setProcessedRepoName,
     setRepoNameForFilename,
-    setFilesAnalyzedCount,
     setCurrentDefaultBranch,
     setFilesToRenderInDiagram,
     setDigest,
@@ -720,6 +711,14 @@ const App: React.FC = () => {
       }
     }
   }, [digest, processedRepoName, repoUrl, githubService, repoNameForFilename]);
+
+  useEffect(() => {
+    ReactGA.initialize("G-1XSNPHMXZ7");
+    ReactGA.send({ hitType: "pageview", page: window.location.pathname + window.location.search });
+    // Note: If you have client-side routing (e.g., React Router),
+    // you'll need a more sophisticated way to track page views on route changes.
+    // This setup tracks only the initial page load.
+  }, []); // Empty dependency array ensures this runs only once after initial render
 
   const handleOpenDiagramFullscreenModal = useCallback(
     (data: RawDiagramNode, repoNameModal: string, branch: string | null) => {
@@ -1007,11 +1006,5 @@ const App: React.FC = () => {
     </div>
   );
 };
-
-ReactGA.initialize("G-1XSNPHMXZ7");
-
-useEffect(() => {
-  ReactGA.send({ hitType: "pageview", page: window.location.pathname + window.location.search });
-}, []);
 
 export default App;
