@@ -756,7 +756,7 @@ const App: React.FC = () => {
         onToggleGeminiApiModal={() => setShowGeminiApiModal(true)}
         hasUserGeminiApiKey={!!userProvidedGeminiApiKey}
       />
-      <div className="mt-6">
+      <div className="m-1">
         <div className="relative w-full max-w-4xl mx-auto flex sm:flex-row flex-col justify-center items-start sm:items-center pt-8 sm:pt-0">
           <svg
             className="h-auto w-16 sm:w-20 md:w-24 flex-shrink-0 p-2 md:relative sm:absolute lg:absolute left-0 lg:-translate-x-full md:translate-x-10 sm:-translate-y-16 md:-translate-y-0 -translate-x-2 lg:-translate-y-10"
@@ -778,11 +778,6 @@ const App: React.FC = () => {
             ></path>
           </svg>
           <div className="text-center w-full flex flex-col items-center">
-            <h1 className="text-4xl sm:text-5xl sm:pt-12 lg:pt-5 md:text-6xl lg:text-7xl font-bold tracking-tighter w-full inline-block relative">
-              Understand Any Repo
-              <br />
-              In Seconds&nbsp;
-            </h1>
             <div className="mt-10">
               <a
                 href="https://www.producthunt.com/products/git-scape-ai?embed=true&utm_source=badge-featured&utm_medium=badge&utm_source=badge-git&#0045;scape&#0045;ai"
@@ -795,6 +790,11 @@ const App: React.FC = () => {
                 />
               </a>
             </div>
+            <h1 className="text-4xl sm:text-5xl sm:pt-12 lg:pt-5 md:text-6xl lg:text-7xl font-bold tracking-tighter w-full inline-block relative">
+              Understand Any Repo
+              <br />
+              In Seconds&nbsp;
+            </h1>
           </div>
           <svg
             className="w-16 lg:w-20 h-auto lg:absolute flex-shrink-0 right-0 bottom-0 md:block hidden translate-y-10 md:translate-y-20 lg:translate-y-4 lg:translate-x-full -translate-x-10"
