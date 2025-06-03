@@ -20,6 +20,7 @@ import {
   CACHED_OUTPUT_PREFIX,
 } from "./constants";
 import { RawDiagramNode, CachedRepoOutput } from "./types";
+import ReactGA from "react-ga4";
 
 // Helper to safely get items from localStorage
 const getFromLocalStorage = (key: string, defaultValue: string): string => {
@@ -1006,5 +1007,11 @@ const App: React.FC = () => {
     </div>
   );
 };
+
+ReactGA.initialize("G-1XSNPHMXZ7");
+
+useEffect(() => {
+  ReactGA.send({ hitType: "pageview", page: window.location.pathname + window.location.search });
+}, []);
 
 export default App;

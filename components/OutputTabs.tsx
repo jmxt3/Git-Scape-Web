@@ -1,14 +1,13 @@
-
 import React, { useState } from 'react';
 import { DigestOutput } from './DigestOutput';
 import { Diagram } from './Diagram';
 import { RepoChat } from './RepoChat';
 import { RawDiagramNode } from '../types';
-// Removed: import { usePostHog } from 'posthog-js/react';
+import ReactGA from 'react-ga4';
 
 interface OutputTabsProps {
   digest: string;
-  isLoadingDigest: boolean; 
+  isLoadingDigest: boolean;
 
   diagramData: RawDiagramNode | null;
   repoName: string; // This is owner/repo for display
@@ -42,11 +41,14 @@ export const OutputTabs: React.FC<OutputTabsProps> = ({
   userProvidedGeminiApiKey,
   onOpenDiagramFullscreenModal, // This prop name is from OutputTabsProps
 }) => {
-  // Removed: const posthog = usePostHog();
   const [activeTab, setActiveTab] = useState<TabName>("Code Digest");
 
   const handleTabClick = (tabName: TabName) => {
     setActiveTab(tabName);
+    ReactGA.event({
+      category: 'Tab Interaction',
+      action: `Viewed ${tabName} Tab`,
+    });
     // Make PostHog call asynchronous to prevent UI freeze
     setTimeout(() => {
       window.posthog?.capture('output_tab_viewed', {
@@ -57,7 +59,7 @@ export const OutputTabs: React.FC<OutputTabsProps> = ({
   };
 
   const tabBaseClasses = "px-4 py-2.5 text-sm font-medium rounded-t-md focus:outline-none transition-colors duration-150 ease-in-out border-b-2";
-  const activeTabBaseClasses = "bg-slate-800"; 
+  const activeTabBaseClasses = "bg-slate-800";
   const inactiveTabClasses = "text-slate-400 hover:text-slate-200 border-transparent hover:border-slate-600";
 
   return (
@@ -66,7 +68,7 @@ export const OutputTabs: React.FC<OutputTabsProps> = ({
         {(["Code Digest", "Code Visualization", "Code Assistant"] as TabName[]).map((tabName) => {
           const isActive = activeTab === tabName;
           const currentTabStyle = tabStyles[tabName];
-          const activeClasses = isActive 
+          const activeClasses = isActive
             ? `${activeTabBaseClasses} ${currentTabStyle.textColor} ${currentTabStyle.borderColor}`
             : inactiveTabClasses;
 
@@ -87,10 +89,10 @@ export const OutputTabs: React.FC<OutputTabsProps> = ({
 
       <div className="bg-slate-800/80 backdrop-blur-sm p-6 rounded-b-lg rounded-tr-lg shadow-xl border border-t-0 border-slate-700 min-h-[600px]">
         {activeTab === "Code Digest" && (
-          <div 
-            id="tabpanel-code-digest" 
-            role="tabpanel" 
-            aria-labelledby="tab-code-digest" 
+          <div
+            id="tabpanel-code-digest"
+            role="tabpanel"
+            aria-labelledby="tab-code-digest"
             className="h-full flex flex-col"
           >
             <DigestOutput digest={digest} isLoading={isLoadingDigest} repoNameForFilename={repoNameForFilename} />
@@ -98,10 +100,10 @@ export const OutputTabs: React.FC<OutputTabsProps> = ({
         )}
 
         {activeTab === "Code Visualization" && (
-          <div 
-            id="tabpanel-code-visualization" 
-            role="tabpanel" 
-            aria-labelledby="tab-code-visualization" 
+          <div
+            id="tabpanel-code-visualization"
+            role="tabpanel"
+            aria-labelledby="tab-code-visualization"
             className="h-[calc(70vh_-_40px)] max-h-[700px] min-h-[550px] w-full"
           >
             {diagramData && repoName && defaultBranch ? (
@@ -109,7 +111,7 @@ export const OutputTabs: React.FC<OutputTabsProps> = ({
                 data={diagramData}
                 repoName={repoName}
                 defaultBranch={defaultBranch}
-                onOpenFullscreenModal={onOpenDiagramFullscreenModal} 
+                onOpenFullscreenModal={onOpenDiagramFullscreenModal}
               />
             ) : (
                <div className="flex items-center justify-center h-full text-slate-400">
@@ -118,11 +120,11 @@ export const OutputTabs: React.FC<OutputTabsProps> = ({
             )}
           </div>
         )}
-        
+
         {activeTab === "Code Assistant" && (
-          <div 
-            id="tabpanel-code-assistant" 
-            role="tabpanel" 
+          <div
+            id="tabpanel-code-assistant"
+            role="tabpanel"
             aria-labelledby="tab-code-assistant"
             className="h-full"
           >

@@ -4,6 +4,7 @@ import { ChatMessage, Candidate } from '../types';
 import { API_KEY_ERROR_MESSAGE, MAX_CHAT_DIGEST_LENGTH } from '../constants';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
+import ReactGA from 'react-ga4';
 
 interface RepoChatProps {
   digest: string;
@@ -144,6 +145,11 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
       setError("Please provide your Gemini API Key to use the chat.");
       return;
     }
+
+    ReactGA.event({
+      category: 'User Interaction',
+      action: 'Chat Message Sent',
+    });
 
     if (!systemInstruction) {
       setError("System instruction not set. Try regenerating the digest.");

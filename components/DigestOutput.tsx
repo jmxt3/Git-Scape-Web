@@ -1,7 +1,6 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { LoadingSpinner } from './LoadingSpinner';
+import ReactGA from 'react-ga4';
 
 interface DigestOutputProps {
   digest: string;
@@ -40,6 +39,10 @@ const DigestOutputComponent: React.FC<DigestOutputProps> = ({ digest, isLoading,
 
   const handleCopy = () => {
     if (digest) {
+      ReactGA.event({
+        category: 'User Interaction',
+        action: 'Copy Digest',
+      });
       navigator.clipboard.writeText(digest)
         .then(() => setCopied(true))
         .catch(err => console.error('Failed to copy text: ', err));
@@ -48,22 +51,26 @@ const DigestOutputComponent: React.FC<DigestOutputProps> = ({ digest, isLoading,
 
   const handleDownload = () => {
     if (digest) {
+      ReactGA.event({
+        category: 'User Interaction',
+        action: 'Download Digest',
+      });
       let filenamePart = 'digest'; // Default
       if (repoNameForFilename) {
         let name = repoNameForFilename; // e.g., "flask-Ultra", "MyGreatRepo"
-        
+
         // Replace hyphens with underscores
         name = name.replace(/-/g, '_'); // "flask_Ultra", "MyGreatRepo"
-        
+
         // Handle transitions from uppercase to uppercase+lowercase (e.g., USAToday -> USA_Today)
         name = name.replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2');
-        
+
         // Handle transitions from lowercase/digit to uppercase (e.g., myRepo -> my_Repo, MyGreatRepo -> My_Great_Repo)
         name = name.replace(/([a-z\d])([A-Z])/g, '$1_$2');
-        
+
         // Convert to lowercase
         name = name.toLowerCase(); // "flask_ultra", "my_great_repo"
-        
+
         filenamePart = name;
       }
 
@@ -88,8 +95,8 @@ const DigestOutputComponent: React.FC<DigestOutputProps> = ({ digest, isLoading,
       </div>
     );
   }
-  
-  if (!digest && !isLoading) { 
+
+  if (!digest && !isLoading) {
     return (
       <div className="mt-6 flex flex-col items-center justify-center h-64 bg-slate-800/30 rounded-md border border-dashed border-slate-700 w-full">
         <p className="text-violet-400 text-center px-4">
