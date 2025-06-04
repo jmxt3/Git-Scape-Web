@@ -3,7 +3,6 @@ import { DigestOutput } from './DigestOutput';
 import { Diagram } from './Diagram';
 import { RepoChat } from './RepoChat';
 import { RawDiagramNode } from '../types';
-import ReactGA from 'react-ga4';
 
 interface OutputTabsProps {
   digest: string;
@@ -45,17 +44,6 @@ export const OutputTabs: React.FC<OutputTabsProps> = ({
 
   const handleTabClick = (tabName: TabName) => {
     setActiveTab(tabName);
-    ReactGA.event({
-      category: 'Tab Interaction',
-      action: `Viewed ${tabName} Tab`,
-    });
-    // Make PostHog call asynchronous to prevent UI freeze
-    setTimeout(() => {
-      window.posthog?.capture('output_tab_viewed', {
-        tab_name: tabName,
-        repo_name: repoName,
-      });
-    }, 0);
   };
 
   const tabBaseClasses = "px-4 py-2.5 text-sm font-medium rounded-t-md focus:outline-none transition-colors duration-150 ease-in-out border-b-2";

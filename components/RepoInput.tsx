@@ -1,6 +1,5 @@
 import React from 'react';
 import { LoadingSpinner } from './LoadingSpinner';
-import ReactGA from 'react-ga4';
 
 interface RepoInputProps {
   repoUrl: string;
@@ -27,10 +26,6 @@ const ClearIcon: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) 
 export const RepoInput: React.FC<RepoInputProps> = ({ repoUrl, setRepoUrl, onGenerate, isLoading }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    ReactGA.event({
-      category: 'User Interaction',
-      action: 'Generate Digest',
-    });
     onGenerate();
   };
 

@@ -1,6 +1,5 @@
 import React from 'react';
 import GitHubButton from 'react-github-btn'
-// Removed: import { usePostHog } from 'posthog-js/react';
 
 interface HeaderProps {
   onToggleTokenModal: () => void;
@@ -9,17 +8,7 @@ interface HeaderProps {
   hasUserGeminiApiKey: boolean;
 }
 
-const KeyIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
-  </svg>
-);
 
-const GemIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 21l5.25-11.25L21 21m-9.75 0l-3.75-7.5L3 21m10.5-9.75L15 3l4.5 8.25m-9.75 0L6.75 3 3 11.25m6.75 6.75L12 12.75l2.25 2.25M12 12.75l-2.25 2.25M12 3.75l-2.25 2.25M12 3.75l2.25 2.25" />
-  </svg>
-);
 
 
 export const Header: React.FC<HeaderProps> = ({
@@ -28,16 +17,13 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleGeminiApiModal,
   hasUserGeminiApiKey
 }) => {
-  // Removed: const posthog = usePostHog();
   const buttonBaseClasses = "flex items-center px-4 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 transition-colors duration-150 ease-in-out shadow-sm";
 
   const handleToggleGeminiModal = () => {
-    window.posthog?.capture('gemini_api_key_modal_opened');
     onToggleGeminiApiModal();
   };
 
   const handleToggleTokenModal = () => {
-    window.posthog?.capture('github_token_modal_opened');
     onToggleTokenModal();
   };
 

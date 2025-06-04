@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { LoadingSpinner } from './LoadingSpinner';
-import ReactGA from 'react-ga4';
 
 interface DigestOutputProps {
   digest: string;
@@ -39,10 +38,6 @@ const DigestOutputComponent: React.FC<DigestOutputProps> = ({ digest, isLoading,
 
   const handleCopy = () => {
     if (digest) {
-      ReactGA.event({
-        category: 'User Interaction',
-        action: 'Copy Digest',
-      });
       navigator.clipboard.writeText(digest)
         .then(() => setCopied(true))
         .catch(err => console.error('Failed to copy text: ', err));
@@ -51,10 +46,6 @@ const DigestOutputComponent: React.FC<DigestOutputProps> = ({ digest, isLoading,
 
   const handleDownload = () => {
     if (digest) {
-      ReactGA.event({
-        category: 'User Interaction',
-        action: 'Download Digest',
-      });
       let filenamePart = 'digest'; // Default
       if (repoNameForFilename) {
         let name = repoNameForFilename; // e.g., "flask-Ultra", "MyGreatRepo"

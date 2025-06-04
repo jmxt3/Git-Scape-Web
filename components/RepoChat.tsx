@@ -4,7 +4,6 @@ import { ChatMessage, Candidate } from '../types';
 import { API_KEY_ERROR_MESSAGE, MAX_CHAT_DIGEST_LENGTH } from '../constants';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
-import ReactGA from 'react-ga4';
 
 interface RepoChatProps {
   digest: string;
@@ -146,11 +145,6 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
       return;
     }
 
-    ReactGA.event({
-      category: 'User Interaction',
-      action: 'Chat Message Sent',
-    });
-
     if (!systemInstruction) {
       setError("System instruction not set. Try regenerating the digest.");
       return;
@@ -167,10 +161,6 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
     };
     setMessages(prev => [...prev, newUserMessage]);
     handleNewMessage(newUserMessage); // Call handleNewMessage here
-    window.posthog?.capture('chat_message_sent_by_user', {
-      repo_name: repoName,
-      message_length: userInput.length,
-    });
     setUserInput('');
     setIsLoading(true);
     setError(null);
@@ -213,10 +203,6 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
           candidates: data.raw?.candidates as Candidate[] | undefined,
         };
         setMessages(prev => [...prev, aiMessage]);
-        window.posthog?.capture('chat_ai_response_received', {
-          repo_name: repoName,
-          response_length: data.text.length,
-        });
       } catch (error) {
         console.error('[RepoChat] Fetch error:', error);
         setError('Failed to fetch AI response. Please try again later.');
@@ -234,10 +220,6 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
       };
       setMessages(prev => [...prev, errorMessage]);
       setError(errorMessageText);
-      window.posthog?.capture('chat_ai_response_failed', {
-        repo_name: repoName,
-        error_message: errorMessageText,
-      });
     } finally {
       setIsLoading(false);
     }

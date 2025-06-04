@@ -155,10 +155,6 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
       timestamp: new Date(),
     };
     setMessages(prev => [...prev, newUserMessage]);
-    window.posthog?.capture('chat_message_sent_by_user', {
-      repo_name: repoName,
-      message_length: userInput.length,
-    });
     setUserInput('');
     setIsLoading(true);
     setError(null);
@@ -197,10 +193,6 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
         candidates: data.raw?.candidates as Candidate[] | undefined,
       };
       setMessages(prev => [...prev, aiMessage]);
-      window.posthog?.capture('chat_ai_response_received', {
-        repo_name: repoName,
-        response_length: aiResponseText.length,
-      });
     } catch (e: any) {
       console.error('Error sending message:', e);
       const errorMessageText = e.message || 'Could not get a response from the AI.';
@@ -213,10 +205,6 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
       };
       setMessages(prev => [...prev, errorMessage]);
       setError(errorMessageText);
-      window.posthog?.capture('chat_ai_response_failed', {
-        repo_name: repoName,
-        error_message: errorMessageText,
-      });
     } finally {
       setIsLoading(false);
     }

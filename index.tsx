@@ -9,9 +9,6 @@ if (!rootElement) {
 
 const root = ReactDOM.createRoot(rootElement);
 
-// PostHog is now initialized directly in index.html via its snippet.
-// The PostHogProvider is no longer needed here.
-// window.posthog will be available globally.
 root.render(
   <React.StrictMode>
     <App />

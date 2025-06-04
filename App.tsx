@@ -20,7 +20,6 @@ import {
   CACHED_OUTPUT_PREFIX,
 } from "./constants";
 import { RawDiagramNode, CachedRepoOutput } from "./types";
-import ReactGA from "react-ga4";
 
 // Helper to safely get items from localStorage
 const getFromLocalStorage = (key: string, defaultValue: string): string => {
@@ -129,9 +128,6 @@ const App: React.FC = () => {
           setRepoNameForFilename(cachedData.repoNameForFilename);
           setCurrentDefaultBranch(cachedData.defaultBranch);
           setFilesToRenderInDiagram(cachedData.filesToRenderInDiagram || []);
-          window.posthog?.capture("output_loaded_from_cache", {
-            repo_url: repoUrl,
-          });
         } catch (e) {
           console.warn(`Failed to parse or use cached data for ${repoUrl}:`, e);
           localStorage.removeItem(cacheKey);
@@ -153,7 +149,6 @@ const App: React.FC = () => {
     if (trimmedToken) {
       storeInLocalStorage(GITHUB_TOKEN_LOCAL_STORAGE_KEY, trimmedToken);
       setGithubToken(trimmedToken);
-      window.posthog?.capture("github_token_saved");
     } else {
       storeInLocalStorage(GITHUB_TOKEN_LOCAL_STORAGE_KEY, null);
       setGithubToken(null);
@@ -165,7 +160,6 @@ const App: React.FC = () => {
     storeInLocalStorage(GITHUB_TOKEN_LOCAL_STORAGE_KEY, null);
     setGithubToken(null);
     setShowTokenModal(false);
-    window.posthog?.capture("github_token_cleared");
   };
 
   const handleSaveUserGeminiApiKey = (apiKey: string) => {
@@ -173,7 +167,6 @@ const App: React.FC = () => {
     if (trimmedKey) {
       storeInLocalStorage(GEMINI_API_KEY_LOCAL_STORAGE_KEY, trimmedKey);
       setUserProvidedGeminiApiKey(trimmedKey);
-      window.posthog?.capture("gemini_api_key_saved");
     } else {
       storeInLocalStorage(GEMINI_API_KEY_LOCAL_STORAGE_KEY, null);
       setUserProvidedGeminiApiKey(null);
@@ -185,7 +178,6 @@ const App: React.FC = () => {
     storeInLocalStorage(GEMINI_API_KEY_LOCAL_STORAGE_KEY, null);
     setUserProvidedGeminiApiKey(null);
     setShowGeminiApiModal(false);
-    window.posthog?.capture("gemini_api_key_cleared");
   };
 
   const processSuccessfulDigestData = useCallback(
@@ -202,7 +194,6 @@ const App: React.FC = () => {
       setProgressPercent(100);
 
       let diagramFiles: GithubFile[] = [];
-      let diagramFilesCountForAnalytics: number | null = null;
       let finalAnalyzedCountForStateAndCache = digestFilesCount;
 
       if (branchToUse && githubService) {
@@ -216,6 +207,7 @@ const App: React.FC = () => {
           const blobFiles = diagramFiles.filter((file) => file.type === "blob");
           finalAnalyzedCountForStateAndCache = blobFiles.length;
           setProgressMessage("Digest and visualization data ready!");
+          setIsLoading(false);
         } catch (diagramErr: any) {
           console.error(
             `Error fetching repository structure for diagram:`,
@@ -243,20 +235,9 @@ const App: React.FC = () => {
       const cacheKey = `${CACHED_OUTPUT_PREFIX}${repoUrl}`;
       try {
         storeInLocalStorage(cacheKey, JSON.stringify(repoDataToCache));
-        window.posthog?.capture("output_saved_to_cache", { repo_url: repoUrl });
       } catch (e) {
         // storeInLocalStorage already logs a warning
       }
-
-      window.posthog?.capture(`digest_generation_succeeded_ws`, {
-        repo_url: repoUrl,
-        processed_repo_name: `${owner}/${repo}`,
-        default_branch: branchToUse,
-        digest_length: markdownDigest.length,
-        digest_files_count: digestFilesCount,
-        diagram_files_count: diagramFilesCountForAnalytics,
-      });
-      setIsLoading(false);
     },
     [
       githubService,
@@ -275,9 +256,6 @@ const App: React.FC = () => {
       setError("Please enter a GitHub repository URL.");
       return;
     }
-    window.posthog?.capture("digest_generation_requested_ws", {
-      repo_url: repoUrl,
-    });
 
     storeInLocalStorage("gitScapeDigestContent", null);
 
@@ -308,10 +286,6 @@ const App: React.FC = () => {
       setError("GitHub service is not available. Please refresh.");
       setIsLoading(false);
       setProgressMessage("");
-      window.posthog?.capture("digest_generation_failed_ws", {
-        repo_url: repoUrl,
-        error_message: "GitHub service not available.",
-      });
       return;
     }
 
@@ -322,10 +296,6 @@ const App: React.FC = () => {
       );
       setIsLoading(false);
       setProgressMessage("");
-      window.posthog?.capture("digest_generation_failed_ws", {
-        repo_url: repoUrl,
-        error_message: "Invalid GitHub URL format.",
-      });
       return;
     }
 
@@ -353,10 +323,6 @@ const App: React.FC = () => {
       setIsLoading(false);
       setProgressMessage("Error fetching branch.");
       setProgressPercent(0);
-      window.posthog?.capture("digest_generation_failed_ws", {
-        repo_url: repoUrl,
-        error_message: `Failed to fetch default branch: ${branchError.message}`,
-      });
       return;
     }
 
@@ -517,10 +483,6 @@ const App: React.FC = () => {
                 setProgressMessage("Server error occurred.");
                 setIsLoading(false);
                 setProgressPercent(0);
-                window.posthog?.capture("digest_generation_failed_ws", {
-                  repo_url: repoUrl,
-                  error_message: errorMessage,
-                });
                 websocketRef.current?.close(
                   1000,
                   "Server error indicated in JSON message"
@@ -577,13 +539,6 @@ const App: React.FC = () => {
               setProgressMessage("Connection failed after multiple attempts.");
               setIsLoading(false);
               setProgressPercent(0);
-              window.posthog?.capture(
-                "digest_generation_failed_ws_max_attempts",
-                {
-                  repo_url: repoUrl,
-                  error_message: `WebSocket ${errorType} after ${attemptNumber} attempts.`,
-                }
-              );
             }
           }
         };
@@ -642,10 +597,6 @@ const App: React.FC = () => {
           setProgressMessage("Initialization error after multiple attempts.");
           setIsLoading(false);
           setProgressPercent(0);
-          window.posthog?.capture("digest_generation_failed_ws_max_attempts", {
-            repo_url: repoUrl,
-            error_message: `Setup error: ${err.message} after ${attemptNumber} attempts.`,
-          });
         }
       }
     };
@@ -712,14 +663,6 @@ const App: React.FC = () => {
     }
   }, [digest, processedRepoName, repoUrl, githubService, repoNameForFilename]);
 
-  useEffect(() => {
-    ReactGA.initialize("G-1XSNPHMXZ7");
-    ReactGA.send({ hitType: "pageview", page: window.location.pathname + window.location.search });
-    // Note: If you have client-side routing (e.g., React Router),
-    // you'll need a more sophisticated way to track page views on route changes.
-    // This setup tracks only the initial page load.
-  }, []); // Empty dependency array ensures this runs only once after initial render
-
   const handleOpenDiagramFullscreenModal = useCallback(
     (data: RawDiagramNode, repoNameModal: string, branch: string | null) => {
       setDiagramDataForModal(data);
@@ -727,9 +670,6 @@ const App: React.FC = () => {
       setDefaultBranchForModal(branch);
       setShowDiagramFullscreenModal(true);
       document.body.style.overflow = "hidden";
-      window.posthog?.capture("diagram_fullscreen_opened", {
-        repo_name: repoNameModal,
-      });
     },
     []
   );
