@@ -718,18 +718,6 @@ const App: React.FC = () => {
             ></path>
           </svg>
           <div className="text-center w-full flex flex-col items-center">
-            <div className="mt-10">
-              <a
-                href="https://www.producthunt.com/products/git-scape-ai?embed=true&utm_source=badge-featured&utm_medium=badge&utm_source=badge-git&#0045;scape&#0045;ai"
-                target="_blank"
-              >
-                <img
-                  src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=972181&theme=light&t=1748954910685"
-                  alt="Git&#0032;Scape&#0032;AI - Understand&#0032;any&#0032;GitHub&#0032;repository&#0032;in&#0032;seconds | Product Hunt"
-                  style={{ width: "200px", height: "54px" }}
-                />
-              </a>
-            </div>
             <h1 className="text-4xl sm:text-5xl sm:pt-12 lg:pt-5 md:text-6xl lg:text-7xl font-bold tracking-tighter w-full inline-block relative">
               Understand Any Repo
               <br />
