@@ -237,8 +237,53 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
     }
   }, [digest]);
 
+  // Helper: Get total localStorage size in bytes
+  function getLocalStorageSize() {
+    let total = 0;
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key) {
+        const value = localStorage.getItem(key);
+        if (value) total += key.length + value.length;
+      }
+    }
+    return total;
+  }
+
+  // Helper: Clean cache if localStorage exceeds 9MB (9 * 1024 * 1024 bytes)
+  function cleanLocalStorageCache(maxBytes = 9 * 1024 * 1024) {
+    let size = getLocalStorageSize();
+    if (size < maxBytes) return;
+    // Remove prioritized keys first
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key === 'repoChatCache' || key.startsWith('CACHED_OUTPUT_PREFIX'))) {
+        keysToRemove.push(key);
+      }
+    }
+    // Remove prioritized keys
+    for (const key of keysToRemove) {
+      localStorage.removeItem(key);
+      size = getLocalStorageSize();
+      if (size < maxBytes) return;
+    }
+    // If still over, remove oldest entries
+    const allKeys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key) allKeys.push(key);
+    }
+    for (const key of allKeys) {
+      localStorage.removeItem(key);
+      size = getLocalStorageSize();
+      if (size < maxBytes) return;
+    }
+  }
+
   // Persist conversation history in localStorage
   useEffect(() => {
+    cleanLocalStorageCache(); // Clean if needed before writing
     localStorage.setItem(
       'repoChatCache',
       JSON.stringify({ digest, conversationHistory })
