@@ -717,7 +717,7 @@ const App: React.FC = () => {
               strokeLinecap="round"
             ></path>
           </svg>
-          <div className="text-center w-full flex flex-col items-center">
+          <div className="text-center w-full flex flex-col items-center mt-12">
             <h1 className="text-4xl sm:text-5xl sm:pt-12 lg:pt-5 md:text-6xl lg:text-7xl font-bold tracking-tighter w-full inline-block relative">
               Understand Any Repo
               <br />
