@@ -9,10 +9,10 @@ interface RepoInputProps {
 }
 
 const QUICK_LOAD_REPOS = [
-  { name: "FastAPI", url: "https://github.com/fastapi/fastapi" },
+  { name: "Radix", url: "https://github.com/radix-ui/themes" },
+  { name: "Tailwind", url: "https://github.com/tailwindlabs/tailwindcss" },
   { name: "Reflex", url: "https://github.com/reflex-dev/reflex" },
   { name: "LangGraph", url: "https://github.com/langchain-ai/langgraph" },
-  { name: "MindsDB", url: "https://github.com/mindsdb/mindsdb" },
   { name: "ADK", url: "https://github.com/google/adk-python" },
 ];
 
