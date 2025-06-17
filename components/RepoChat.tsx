@@ -250,8 +250,8 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
     return total;
   }
 
-  // Helper: Clean cache if localStorage exceeds 9MB (9 * 1024 * 1024 bytes)
-  function cleanLocalStorageCache(maxBytes = 9 * 1024 * 1024) {
+  // Helper: Clean cache if localStorage exceeds 8MB (8 * 1024 * 1024 bytes)
+  function cleanLocalStorageCache(maxBytes = 8 * 1024 * 1024) {
     let size = getLocalStorageSize();
     if (size < maxBytes) return;
     // Remove prioritized keys first
@@ -283,11 +283,31 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
 
   // Persist conversation history in localStorage
   useEffect(() => {
-    cleanLocalStorageCache(); // Clean if needed before writing
-    localStorage.setItem(
-      'repoChatCache',
-      JSON.stringify({ digest, conversationHistory })
-    );
+    function persistCache() {
+      try {
+        cleanLocalStorageCache(); // Clean if needed before writing
+        localStorage.setItem(
+          'repoChatCache',
+          JSON.stringify({ digest, conversationHistory })
+        );
+      } catch (e: any) {
+        if (e.name === 'QuotaExceededError' || e.code === 22) {
+          console.warn('[RepoChat] localStorage quota exceeded. Clearing cache and retrying.');
+          try {
+            cleanLocalStorageCache(0); // Aggressively clear all cache
+            localStorage.setItem(
+              'repoChatCache',
+              JSON.stringify({ digest, conversationHistory: conversationHistory.slice(-10) }) // Only last 10 messages
+            );
+          } catch (e2) {
+            console.error('[RepoChat] Failed to persist chat cache after clearing:', e2);
+          }
+        } else {
+          console.error('[RepoChat] Failed to persist chat cache:', e);
+        }
+      }
+    }
+    persistCache();
   }, [digest, conversationHistory]);
 
 

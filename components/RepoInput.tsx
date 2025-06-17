@@ -9,8 +9,8 @@ interface RepoInputProps {
 }
 
 const QUICK_LOAD_REPOS = [
-  { name: "Radix", url: "https://github.com/radix-ui/themes" },
-  { name: "Tailwind", url: "https://github.com/tailwindlabs/tailwindcss" },
+  { name: "FastAPI", url: "https://github.com/tiangolo/fastapi" },
+  { name: "Redis", url: "https://github.com/redis/redis" },
   { name: "Reflex", url: "https://github.com/reflex-dev/reflex" },
   { name: "LangGraph", url: "https://github.com/langchain-ai/langgraph" },
   { name: "ADK", url: "https://github.com/google/adk-python" },
