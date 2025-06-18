@@ -62,15 +62,16 @@ export const RepoInput: React.FC<RepoInputProps> = ({ repoUrl, setRepoUrl, onGen
           </button>
         )}
       </div>
-      <div className="flex justify-between items-center">
-        <div className="hidden sm:flex space-x-2">
+      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2">
+        {/* Mobile: show quick load buttons above the generate button, both stacked vertically */}
+        <div className="flex flex-row sm:flex-row flex-wrap sm:flex-nowrap space-x-2 sm:space-x-2 mb-2 sm:mb-0">
           {QUICK_LOAD_REPOS.map(repo => (
             <button
               key={repo.name}
               type="button"
               onClick={() => setRepoUrl(repo.url)}
               disabled={isLoading}
-              className="px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-600 hover:bg-slate-500 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-slate-900 focus:ring-violet-400 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              className="px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-600 hover:bg-slate-500 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-slate-900 focus:ring-violet-400 transition-colors disabled:opacity-60 disabled:cursor-not-allowed mb-2 sm:mb-0"
               title={`Load ${repo.name} repository`}
             >
               {repo.name}
