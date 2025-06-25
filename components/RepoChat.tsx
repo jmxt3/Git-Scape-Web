@@ -172,6 +172,7 @@ export const RepoChat: React.FC<RepoChatProps> = ({ digest, repoName, userProvid
         system_instruction: systemInstruction,
         history: currentHistoryForApi,
         user_message: newUserMessage.text,
+        context: digest,
       };
 
       // Use absolute API URL for the POST request
