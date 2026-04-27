@@ -1,0 +1,6 @@
+fastapi[standard]
+pydantic
+pydantic-settings
+python-dotenv
+slowapi
+requests
