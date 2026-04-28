@@ -27,6 +27,7 @@ from starlette.websockets import WebSocketState
 from app.config import settings, origins
 import app.converter as converter
 from app.skill_builder import build_skill_zip, generate_skill_md, generate_manifest_json
+from app.skill_generator import render_framework_export
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -153,6 +154,52 @@ def get_skill_zip(
             media_type="application/zip",
             headers={"Content-Disposition": f'attachment; filename="{filename}"'},
         )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/export/{framework}")
+@limiter.limit("10/minute")
+def get_framework_export(
+    request: Request,
+    framework: str,
+    repo_url: str = Query(..., description="Git repository URL"),
+):
+    """
+    Render and download a Python framework integration file for the given skill.
+
+    Supported frameworks:
+      - adk   : Google Agent Development Kit (google-adk)
+      - agno  : Agno Knowledge Agent
+
+    Returns a downloadable .py file named {repo}-{framework}-skill.py
+    """
+    framework = framework.lower()
+    if framework not in ("adk", "agno"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported framework '{framework}'. Supported: adk, agno",
+        )
+
+    try:
+        decoded_url = urllib.parse.unquote(repo_url)
+        # Extract owner/repo from URL, e.g. https://github.com/owner/repo[.git]
+        parts = decoded_url.rstrip("/").rstrip(".git").split("/")
+        if len(parts) < 2:
+            raise ValueError("Cannot parse owner/repo from URL")
+        owner = parts[-2]
+        repo = parts[-1].removesuffix(".git")
+
+        code = render_framework_export(framework=framework, owner=owner, repo=repo)
+        filename = f"{repo}-{framework}-skill.py"
+
+        return StreamingResponse(
+            iter([code.encode("utf-8")]),
+            media_type="text/x-python",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

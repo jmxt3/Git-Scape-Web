@@ -20,6 +20,7 @@ interface OutputTabsProps {
   manifestJson?: SkillManifest | null;
   repoUrl?: string;
   githubToken?: string | null;
+  // digest is also forwarded so WebLLM can use code context
 }
 
 type TabName = "Code Digest" | "Code Visualization" | "Skill Export";
@@ -173,6 +174,7 @@ export const OutputTabs: React.FC<OutputTabsProps> = ({
                 repoUrl={repoUrl ?? ""}
                 repoNameForFilename={repoNameForFilename}
                 githubToken={githubToken ?? null}
+                digest={digest}
               />
             ) : (
               <div className="flex flex-col items-center justify-center h-full gap-4 text-slate-400">

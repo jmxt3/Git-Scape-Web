@@ -23,10 +23,14 @@ export default defineConfig(({ mode }) => {
               vendor: ['react', 'react-dom'],
               d3: ['d3'],
               markdown: ['react-markdown', 'rehype-highlight'],
-              google: ['@google/genai']
+              google: ['@google/genai'],
+              webllm: ['@mlc-ai/web-llm'],
             }
           }
         }
-      }
+      },
+      optimizeDeps: {
+        exclude: ['@mlc-ai/web-llm'],
+      },
     };
 });
