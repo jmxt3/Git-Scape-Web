@@ -17,7 +17,7 @@ import {
   REPO_URL_LOCAL_STORAGE_KEY,
   CACHED_OUTPUT_PREFIX,
 } from "./constants";
-import { RawDiagramNode, CachedRepoOutput } from "./types";
+import { RawDiagramNode, CachedRepoOutput, SkillManifest } from "./types";
 
 // Helper to safely get items from localStorage
 const getFromLocalStorage = (key: string, defaultValue: string): string => {
@@ -41,8 +41,6 @@ const storeInLocalStorage = (key: string, value: string | null) => {
     console.warn(`Failed to write '${key}' to localStorage:`, e);
   }
 };
-
-const MAX_TOTAL_WEBSOCKET_ATTEMPTS = 2; // Initial attempt + 1 retry
 
 const App: React.FC = () => {
   const [repoUrl, setRepoUrl] = useState<string>(() =>
@@ -70,6 +68,10 @@ const App: React.FC = () => {
   const [filesToRenderInDiagram, setFilesToRenderInDiagram] = useState<
     GithubFile[]
   >([]);
+
+  // Skill export state
+  const [skillMd, setSkillMd] = useState<string>("");
+  const [manifestJson, setManifestJson] = useState<SkillManifest | null>(null);
 
   const [showDiagramFullscreenModal, setShowDiagramFullscreenModal] =
     useState<boolean>(false);
@@ -110,6 +112,9 @@ const App: React.FC = () => {
           setRepoNameForFilename(cachedData.repoNameForFilename);
           setCurrentDefaultBranch(cachedData.defaultBranch);
           setFilesToRenderInDiagram(cachedData.filesToRenderInDiagram || []);
+          // Restore skill fields if present
+          if (cachedData.skill_md) setSkillMd(cachedData.skill_md);
+          if (cachedData.manifest_json) setManifestJson(cachedData.manifest_json);
         } catch (e) {
           console.warn(`Failed to parse or use cached data for ${repoUrl}:`, e);
           localStorage.removeItem(cacheKey);
@@ -152,7 +157,10 @@ const App: React.FC = () => {
       owner: string,
       repo: string,
       defaultBranchFromFetch: string | null,
-      digestFilesCount: number | null
+      digestFilesCount: number | null,
+      newSkillMd?: string,
+      newManifestJson?: SkillManifest | null,
+      newPrimaryLanguages?: string[],
     ) => {
       setDigest(markdownDigest);
       const branchToUse = defaultBranchFromFetch;
@@ -196,6 +204,9 @@ const App: React.FC = () => {
         filesAnalyzedCount: finalAnalyzedCountForStateAndCache,
         filesToRenderInDiagram: diagramFiles,
         timestamp: Date.now(),
+        skill_md: newSkillMd,
+        manifest_json: newManifestJson ?? undefined,
+        primary_languages: newPrimaryLanguages,
       };
 
       const cacheKey = `${CACHED_OUTPUT_PREFIX}${repoUrl}`;
@@ -235,6 +246,8 @@ const App: React.FC = () => {
     setRepoNameForFilename(null);
     setCurrentDefaultBranch(null);
     setFilesToRenderInDiagram([]);
+    setSkillMd("");
+    setManifestJson(null);
     currentRepoInfoRef.current = null;
     currentDefaultBranchForRequestRef.current = null;
 
@@ -332,6 +345,10 @@ const App: React.FC = () => {
           throw new Error("Invalid or empty digest returned by the server.");
         }
 
+        // Store skill fields from enhanced /converter response
+        if (data.skill_md) setSkillMd(data.skill_md);
+        if (data.manifest_json) setManifestJson(data.manifest_json);
+
         const branchForProcessing = data.default_branch || currentDefaultBranchForRequestRef.current;
         const digestFilesCount = data.files_analyzed_count !== undefined ? Number(data.files_analyzed_count) : null;
 
@@ -345,7 +362,10 @@ const App: React.FC = () => {
           currentOwner,
           currentRepo,
           branchForProcessing,
-          digestFilesCount
+          digestFilesCount,
+          data.skill_md,
+          data.manifest_json,
+          data.primary_languages,
         );
 
       } catch (err: any) {
@@ -593,6 +613,10 @@ const App: React.FC = () => {
                 repoNameForFilename={repoNameForFilename}
                 defaultBranch={currentDefaultBranch}
                 onOpenDiagramFullscreenModal={handleOpenDiagramFullscreenModal}
+                skillMd={skillMd}
+                manifestJson={manifestJson}
+                repoUrl={repoUrl}
+                githubToken={githubToken}
               />
             </section>
           )}

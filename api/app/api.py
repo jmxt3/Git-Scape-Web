@@ -21,10 +21,12 @@ from fastapi import (
     WebSocketDisconnect,
 )
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from starlette.websockets import WebSocketState
 
 from app.config import settings, origins
 import app.converter as converter
+from app.skill_builder import build_skill_zip, generate_skill_md, generate_manifest_json
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -59,15 +61,98 @@ def get_digest(
 ):
     """
     HTTP endpoint to clone a Git repository and generate a Markdown digest.
-    This is a blocking operation.
+    Returns the digest plus skill preview fields (skill_md, manifest_json, primary_languages).
+    """
+    from datetime import datetime, timezone
+
+    try:
+        repo_url = urllib.parse.unquote(repo_url)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            clone_path = os.path.join(tmpdir, "repo")
+            converter.clone_repository(repo_url, clone_path, github_token=github_token)
+            digest_str, metadata = converter.generate_markdown_digest(
+                repo_url, clone_path, return_metadata=True
+            )
+
+        owner = metadata["owner"]
+        repo = metadata["repo"]
+        languages = metadata["primary_languages"]
+        files_analyzed = metadata["files_analyzed"]
+        generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        skill_md = generate_skill_md(
+            owner=owner,
+            repo=repo,
+            repo_url=repo_url,
+            languages=languages,
+            files_analyzed=files_analyzed,
+            generated_at=generated_at,
+        )
+        manifest = generate_manifest_json(
+            owner=owner,
+            repo=repo,
+            repo_url=repo_url,
+            languages=languages,
+            files_analyzed=files_analyzed,
+            generated_at=generated_at,
+        )
+
+        return {
+            "digest": digest_str,
+            "skill_md": skill_md,
+            "manifest_json": manifest,
+            "primary_languages": languages,
+            "files_analyzed": files_analyzed,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/skill-zip")
+@limiter.limit("5/minute")
+def get_skill_zip(
+    request: Request,
+    repo_url: str = Query(..., description="Git repository URL to package as a skill"),
+    github_token: str = Query(
+        None,
+        description="GitHub Personal Access Token for private repos",
+    ),
+):
+    """
+    Clone a Git repository and return a downloadable ZIP skill package containing:
+      - SKILL.md   : Canonical Agent Skills instructions (agentskills.io)
+      - DIGEST.md  : Full code digest knowledge base
+      - manifest.json : Machine-readable metadata for ADK / OpenAI Agents
     """
     try:
         repo_url = urllib.parse.unquote(repo_url)
         with tempfile.TemporaryDirectory() as tmpdir:
             clone_path = os.path.join(tmpdir, "repo")
             converter.clone_repository(repo_url, clone_path, github_token=github_token)
-            markdown = converter.generate_markdown_digest(repo_url, clone_path)
-        return {"digest": markdown}
+            digest_str, metadata = converter.generate_markdown_digest(
+                repo_url, clone_path, return_metadata=True
+            )
+
+        owner = metadata["owner"]
+        repo = metadata["repo"]
+        languages = metadata["primary_languages"]
+        files_analyzed = metadata["files_analyzed"]
+
+        zip_buffer = build_skill_zip(
+            owner=owner,
+            repo=repo,
+            repo_url=repo_url,
+            digest_md=digest_str,
+            languages=languages,
+            files_analyzed=files_analyzed,
+        )
+
+        filename = f"{repo}-skill.zip"
+        return StreamingResponse(
+            zip_buffer,
+            media_type="application/zip",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -1,32 +1,69 @@
 import React from 'react';
-import GitHubButton from 'react-github-btn'
+import GitHubButton from 'react-github-btn';
 
 interface HeaderProps {
   onToggleTokenModal: () => void;
   hasToken: boolean;
 }
 
+const LockIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+    <path fillRule="evenodd" d="M10 1a4.5 4.5 0 0 0-4.5 4.5V9H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-.5V5.5A4.5 4.5 0 0 0 10 1Zm3 8V5.5a3 3 0 1 0-6 0V9h6Z" clipRule="evenodd" />
+  </svg>
+);
 
+const CheckIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+    <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" />
+  </svg>
+);
 
-
-export const Header: React.FC<HeaderProps> = ({
-  onToggleTokenModal,
-  hasToken,
-}) => {
-  const handleToggleTokenModal = () => {
-    onToggleTokenModal();
-  };
-
+export const Header: React.FC<HeaderProps> = ({ onToggleTokenModal, hasToken }) => {
   return (
-    <header className="bg-slate-900/80 backdrop-blur-md text-slate-100 shadow-lg border-b border-slate-700 sticky top-0 z-40">
-      <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-        <div className="flex items-center">
-          <span className="text-3xl font-bold tracking-tight tracking-tighter text-slate-100">
-            Git Scape<span className="text-red-500"> AI</span>
-          </span>
+    <header
+      className="sticky top-0 z-40"
+      style={{
+        background: 'rgba(8, 13, 20, 0.85)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(71, 85, 105, 0.3)',
+      }}
+    >
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+        {/* Logo */}
+        <div className="flex items-center gap-2.5">
+          {/* Icon mark */}
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{
+              background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)',
+              boxShadow: '0 0 16px rgba(124,58,237,0.4)',
+            }}
+          >
+            <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-4.5 h-4.5">
+              <path d="M4 10 L8 6 L12 10 L8 14 Z" fill="white" opacity="0.9"/>
+              <path d="M10 4 L16 10 L10 16" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.6"/>
+            </svg>
+          </div>
+          <div className="flex items-baseline gap-1">
+            <span className="text-xl font-bold tracking-tight text-slate-100">
+              GitScape
+            </span>
+            <span
+              className="text-xs font-bold px-1.5 py-0.5 rounded"
+              style={{
+                background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)',
+                color: 'white',
+                letterSpacing: '0.05em',
+              }}
+            >
+              AI
+            </span>
+          </div>
         </div>
-        <div className="flex items-center space-x-3">
-          {/* GitHub Star Button */}
+
+        {/* Right controls */}
+        <div className="flex items-center gap-3">
           <div className="hidden sm:block">
             <GitHubButton
               href="https://github.com/jmxt3/Git-Scape-Web"
@@ -38,17 +75,30 @@ export const Header: React.FC<HeaderProps> = ({
               Stars
             </GitHubButton>
           </div>
+
           <button
-            onClick={handleToggleTokenModal}
-            title={hasToken ? "Update GitHub Token" : "Private Repos"}
-            className={`flex items-center px-4 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 transition-colors duration-150 ease-in-out shadow-sm ${
-              hasToken
-                ? 'bg-emerald-600 hover:bg-emerald-700 text-white focus:ring-emerald-500'
-                : 'bg-slate-700 hover:bg-slate-600 text-slate-300 focus:ring-emerald-500'
-            }`}
-            aria-label={hasToken ? "GitHub token is set. Click to manage." : "Set GitHub Personal Access Token"}
+            id="private-repos-btn"
+            onClick={onToggleTokenModal}
+            title={hasToken ? 'Manage GitHub Token' : 'Add GitHub Token for Private Repos'}
+            aria-label={hasToken ? 'GitHub token is set. Click to manage.' : 'Set GitHub Personal Access Token for private repos'}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 focus:ring-offset-transparent"
+            style={hasToken ? {
+              background: 'rgba(16,185,129,0.12)',
+              border: '1px solid rgba(16,185,129,0.35)',
+              color: '#34d399',
+            } : {
+              background: 'rgba(139,92,246,0.1)',
+              border: '1px solid rgba(139,92,246,0.3)',
+              color: '#a78bfa',
+            }}
           >
-            {hasToken ? 'GitHub Token Set' : 'Private Repos'}
+            {hasToken ? <CheckIcon /> : <LockIcon />}
+            <span className="hidden sm:inline">
+              {hasToken ? 'Token Active' : 'Private Repos'}
+            </span>
+            <span className="sm:hidden">
+              {hasToken ? '✓' : 'Token'}
+            </span>
           </button>
         </div>
       </div>

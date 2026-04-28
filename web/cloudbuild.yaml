@@ -20,11 +20,11 @@ steps:
     args:
       - 'build'
       - '--tag'
-      - 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/gitscape-web:$_IMAGE_TAG'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-daily-journal-repo/gitscape-web:$_IMAGE_TAG'
       - '--tag'
-      - 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/gitscape-web:latest'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-daily-journal-repo/gitscape-web:latest'
       - '--cache-from'
-      - 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/gitscape-web:latest'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-daily-journal-repo/gitscape-web:latest'
       - '.'
 
   # ── Step 4: Push both tags to Artifact Registry ───────────────────────────────
@@ -33,7 +33,7 @@ steps:
     args:
       - 'push'
       - '--all-tags'
-      - 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/gitscape-web'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-daily-journal-repo/gitscape-web'
 
   # ── Step 5: Deploy to Cloud Run ───────────────────────────────────────────────
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -44,7 +44,7 @@ steps:
       - 'deploy'
       - 'gitscape-web'
       - '--image'
-      - 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/gitscape-web:$_IMAGE_TAG'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-daily-journal-repo/gitscape-web:$_IMAGE_TAG'
       - '--region'
       - 'us-central1'
       - '--platform'
@@ -63,8 +63,8 @@ steps:
 
 # Store the built image in Artifact Registry
 images:
-  - 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/gitscape-web:$_IMAGE_TAG'
-  - 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/gitscape-web:latest'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-daily-journal-repo/gitscape-web:$_IMAGE_TAG'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-daily-journal-repo/gitscape-web:latest'
 
 options:
   logging: CLOUD_LOGGING_ONLY

@@ -81,4 +81,30 @@ export interface CachedRepoOutput {
   filesAnalyzedCount: number | null;
   filesToRenderInDiagram: GithubFile[];
   timestamp: number;
+  // Skill fields (optional for backward compat with older cache entries)
+  skill_md?: string;
+  manifest_json?: SkillManifest;
+  primary_languages?: string[];
+}
+
+export interface SkillManifest {
+  schema_version: string;
+  name: string;
+  display_name: string;
+  description: string;
+  version: string;
+  capabilities: string[];
+  framework_compatibility: string[];
+  files: {
+    instructions: string;
+    knowledge_base: string;
+  };
+  metadata: {
+    source_repo: string;
+    generated_by: string;
+    generated_by_url: string;
+    generated_at: string;
+    files_analyzed: number;
+    primary_languages: string[];
+  };
 }

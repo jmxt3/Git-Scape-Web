@@ -17,7 +17,8 @@ import logging
 import fnmatch
 import urllib.parse
 from pathlib import Path
-from typing import Optional, Callable, List, Set
+from typing import Optional, Callable, List, Set, Tuple
+from app.skill_builder import detect_primary_languages
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -327,16 +328,38 @@ def get_all_text_files(root: Path) -> list:
     return files
 
 
-def generate_markdown_digest(repo_url: str, repo_path: str, progress_callback=None) -> str:
+def generate_markdown_digest(
+    repo_url: str,
+    repo_path: str,
+    progress_callback=None,
+    return_metadata: bool = False,
+) -> "str | Tuple[str, dict]":
+    """
+    Generate a Markdown digest for a repository.
+
+    Args:
+        repo_url: URL of the repository.
+        repo_path: Local path to the cloned repository.
+        progress_callback: Optional callback for progress updates.
+        return_metadata: If True, returns (digest_str, metadata_dict) tuple.
+                         If False (default), returns only digest_str for backward compat.
+
+    Returns:
+        str: The Markdown digest (when return_metadata=False).
+        Tuple[str, dict]: (digest, metadata) when return_metadata=True.
+            metadata keys: files_analyzed (int), primary_languages (List[str])
+    """
     root = Path(repo_path)
+    owner = "unknown"
+    repo_short = root.name
     try:
         # Extract a descriptive name from the repo_url
         path_parts = urllib.parse.urlparse(repo_url).path.strip("/").split("/")
         if len(path_parts) >= 2:
-            owner, repo = path_parts[-2], path_parts[-1]
-            if repo.endswith(".git"):
-                repo = repo[:-4]
-            repo_name = f"{owner}-{repo}"
+            owner, repo_short = path_parts[-2], path_parts[-1]
+            if repo_short.endswith(".git"):
+                repo_short = repo_short[:-4]
+            repo_name = f"{owner}-{repo_short}"
         else:
             # Fallback for unusual URLs
             repo_name = Path(urllib.parse.urlparse(repo_url).path).stem
@@ -360,7 +383,17 @@ def generate_markdown_digest(repo_url: str, repo_path: str, progress_callback=No
         except Exception as e:
             content = f"[Could not read file: {e}]"
         digest.append(content)
-    return "\n".join(digest)
+    digest_str = "\n".join(digest)
+    if return_metadata:
+        languages = detect_primary_languages(text_files)
+        metadata = {
+            "files_analyzed": len(text_files),
+            "primary_languages": languages,
+            "owner": owner,
+            "repo": repo_short,
+        }
+        return digest_str, metadata
+    return digest_str
 
 
 # If run as script, keep the CLI for backward compatibility

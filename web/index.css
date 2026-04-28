@@ -1,1 +1,248 @@
 @import "tailwindcss";
+
+/* ─── Google Font ─── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ─── Base ─── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overscroll-behavior-y: none;
+}
+
+body {
+  background-color: #080d14;
+  color: #e2e8f0;
+}
+
+/* ─── Custom Scrollbar ─── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #0f172a; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+/* ─── Animated gradient mesh background ─── */
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33%       { transform: translateY(-8px) rotate(1deg); }
+  66%       { transform: translateY(4px) rotate(-1deg); }
+}
+
+@keyframes floatAlt {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33%       { transform: translateY(6px) rotate(-1deg); }
+  66%       { transform: translateY(-10px) rotate(1deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50%       { opacity: 0.7; transform: scale(1.05); }
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ─── Hero mesh blobs ─── */
+.hero-blob-1 {
+  position: absolute;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(139,92,246,0.18) 0%, transparent 70%);
+  top: -150px; left: -100px;
+  animation: pulse-glow 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.hero-blob-2 {
+  position: absolute;
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(99,102,241,0.14) 0%, transparent 70%);
+  top: -50px; right: -80px;
+  animation: pulse-glow 8s ease-in-out infinite 2s;
+  pointer-events: none;
+}
+
+.hero-blob-3 {
+  position: absolute;
+  width: 400px; height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(16,185,129,0.10) 0%, transparent 70%);
+  bottom: -100px; right: 20%;
+  animation: pulse-glow 10s ease-in-out infinite 4s;
+  pointer-events: none;
+}
+
+/* ─── Gradient text ─── */
+.text-gradient {
+  background: linear-gradient(135deg, #a78bfa 0%, #818cf8 40%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-hero {
+  background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 50%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Animated hero text ─── */
+.hero-animate-1 { animation: fadeSlideUp 0.6s ease-out both; }
+.hero-animate-2 { animation: fadeSlideUp 0.6s ease-out 0.15s both; }
+.hero-animate-3 { animation: fadeSlideUp 0.6s ease-out 0.3s both; }
+.hero-animate-4 { animation: fadeSlideUp 0.6s ease-out 0.45s both; }
+
+/* ─── Sparkle decorations ─── */
+.sparkle-red   { animation: float 5s ease-in-out infinite; }
+.sparkle-green { animation: floatAlt 6s ease-in-out infinite 1s; }
+
+/* ─── Feature cards ─── */
+.feature-card {
+  position: relative;
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(12px);
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 1rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.feature-card:hover {
+  border-color: rgba(139, 92, 246, 0.5);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(139,92,246,0.15);
+}
+
+.feature-card:hover::before { opacity: 1; }
+
+.feature-card-violet::before {
+  background: radial-gradient(ellipse at top left, rgba(139,92,246,0.08) 0%, transparent 60%);
+}
+.feature-card-green::before {
+  background: radial-gradient(ellipse at top left, rgba(16,185,129,0.08) 0%, transparent 60%);
+}
+.feature-card-blue::before {
+  background: radial-gradient(ellipse at top left, rgba(56,189,248,0.08) 0%, transparent 60%);
+}
+
+/* ─── Input section glass ─── */
+.input-glass {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  border-radius: 1rem;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 4px 24px -4px rgba(0,0,0,0.4);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.input-glass:focus-within {
+  border-color: rgba(139,92,246,0.5);
+  box-shadow: 0 4px 24px -4px rgba(0,0,0,0.4), 0 0 0 1px rgba(139,92,246,0.2);
+}
+
+/* ─── Shimmer button ─── */
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; right: 0; bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+  transition: left 0.4s ease;
+}
+.btn-shimmer:hover::after { left: 100%; }
+
+/* ─── Badge pill ─── */
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: 1px solid;
+}
+
+/* ─── Noise texture overlay ─── */
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  opacity: 0.025;
+  pointer-events: none;
+  z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+/* ─── Grid pattern ─── */
+.grid-pattern {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(148,163,184,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148,163,184,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+}
+
+/* ─── Progress bar ─── */
+.progress-bar-track {
+  width: 100%;
+  background: rgba(51, 65, 85, 0.5);
+  border-radius: 9999px;
+  height: 3px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #7c3aed, #818cf8, #38bdf8);
+  border-radius: 9999px;
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+  transition: width 0.3s ease;
+}
+
+/* ─── Stat counter badges ─── */
+.stat-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
