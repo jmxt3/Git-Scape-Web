@@ -12,8 +12,6 @@
 
 ## 🚀 Overview
 
-![GitScape](https://ik.imagekit.io/lmewht1ww/Git%20Scape%20AI/Screenshot_12.png?updatedAt=1748956392835)
-
 Git Scape AI is an open-source platform that instantly generates AI-ready text digests of GitHub codebases, visualizes repository structures with interactive diagrams, and enables contextual AI-powered chat to help you understand, debug, and refactor code. It supports both public and private repositories.
 
 - **AI Code Summaries:** Get concise, AI-generated summaries of any GitHub repo.
