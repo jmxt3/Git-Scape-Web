@@ -1,0 +1,70 @@
+substitutions:
+  _IMAGE_TAG: latest  # overridden automatically by CI with $COMMIT_SHA
+
+steps:
+  # ── Step 1: Install dependencies ─────────────────────────────────────────────
+  - name: 'node:20-alpine'
+    id: 'install'
+    entrypoint: 'npm'
+    args: ['ci']
+
+  # ── Step 2: Build the Vite app ────────────────────────────────────────────────
+  - name: 'node:20-alpine'
+    id: 'build'
+    entrypoint: 'npm'
+    args: ['run', 'build']
+
+  # ── Step 3: Build the Docker image (nginx serving the dist/) ─────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-build'
+    args:
+      - 'build'
+      - '--tag'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/gitscape-web:$_IMAGE_TAG'
+      - '--tag'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/gitscape-web:latest'
+      - '--cache-from'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/gitscape-web:latest'
+      - '.'
+
+  # ── Step 4: Push both tags to Artifact Registry ───────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push'
+    args:
+      - 'push'
+      - '--all-tags'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/gitscape-web'
+
+  # ── Step 5: Deploy to Cloud Run ───────────────────────────────────────────────
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'gitscape-web'
+      - '--image'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/gitscape-web:$_IMAGE_TAG'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--timeout'
+      - '60s'
+      - '--memory'
+      - '256Mi'
+      - '--min-instances'
+      - '0'
+      - '--max-instances'
+      - '10'
+      - '--port'
+      - '8080'
+
+# Store the built image in Artifact Registry
+images:
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/gitscape-web:$_IMAGE_TAG'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/gitscape-web:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

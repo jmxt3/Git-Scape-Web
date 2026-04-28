@@ -11,16 +11,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 origins = [
-    "https://gitscape.ai/",  # Your production frontend
-    "https://www.gitscape.ai", # Additional production frontend
-    "http://gitscape.ai/",  # Your production frontend
-    "http://www.gitscape.ai", # Additional production frontend
-    "http://localhost:8000", # Your local development frontend (optional)
-    "http://localhost:5173", # Additional local development frontend
-    "https://gitscape.ai", # Newly added production frontend
-    "https://www.gitscape.ai", # Newly added production frontend
-    "https://api.gitscape.ai/",
-    "http://api.gitscape.ai/"
+    "https://gitscape.ai",
+    "https://www.gitscape.ai",
+    "http://localhost:5173",  # Local development
+    "http://localhost:8000",  # Local development
 ]
 
 class Settings(BaseSettings):

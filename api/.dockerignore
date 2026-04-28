@@ -7,6 +7,10 @@ __pycache__/
 venv/
 ENV/
 .env
+.env.*
+!.env.example
+api_key.txt
+generate_key.py
 
 # Version control
 .git
@@ -23,3 +27,7 @@ ENV/
 *.log
 .llm/*
 *:Zone.Identifier
+
+# Key management scripts (never ship these)
+api_key.txt
+generate_key.py

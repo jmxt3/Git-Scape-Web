@@ -1,0 +1,58 @@
+substitutions:
+  _IMAGE_TAG: latest  # overridden automatically by CI with $COMMIT_SHA
+
+steps:
+  # ── Step 1: Build the Docker image ───────────────────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build'
+    args:
+      - 'build'
+      - '--tag'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/gitscape-api:$_IMAGE_TAG'
+      - '--tag'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/gitscape-api:latest'
+      - '--cache-from'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/gitscape-api:latest'
+      - '.'
+
+  # ── Step 2: Push both tags to Artifact Registry ───────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push'
+    args:
+      - 'push'
+      - '--all-tags'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/gitscape-api'
+
+  # ── Step 3: Deploy to Cloud Run ───────────────────────────────────────────────
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'gitscape-api'
+      - '--image'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/gitscape-api:$_IMAGE_TAG'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--set-env-vars'
+      - 'ENVIRONMENT=production'
+      - '--timeout'
+      - '300s'
+      - '--memory'
+      - '512Mi'
+      - '--min-instances'
+      - '0'
+      - '--max-instances'
+      - '10'
+
+# Store the built image in Artifact Registry
+images:
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/gitscape-api:$_IMAGE_TAG'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/gitscape-api:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

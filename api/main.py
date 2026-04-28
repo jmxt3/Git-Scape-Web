@@ -7,9 +7,8 @@ import time
 import uvicorn
 from app.api import create_app
 from app.api import router as api_router
+from app.api import limiter
 from fastapi import Request
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from fastapi.responses import JSONResponse
@@ -17,8 +16,7 @@ from fastapi.responses import JSONResponse
 app = create_app()
 app.include_router(api_router)
 
-# SlowAPI setup
-limiter = Limiter(key_func=get_remote_address)
+# SlowAPI setup — shares the same Limiter instance defined in api.py
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
 

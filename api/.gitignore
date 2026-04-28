@@ -37,12 +37,18 @@ coverage.xml
 
 # Environments
 .env
+.env.*
+!.env.example
 .venv
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Key management (never commit these)
+api_key.txt
+generate_key.py
 
 # IDE specific files
 .idea/

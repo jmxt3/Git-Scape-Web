@@ -25,6 +25,10 @@ from starlette.websockets import WebSocketState
 
 from app.config import settings, origins
 import app.converter as converter
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
 
 
 logging.basicConfig(level=logging.INFO)
@@ -44,6 +48,7 @@ async def health_check():
     return {"status": "OK"}
 
 @router.get("/converter")
+@limiter.limit("10/minute")
 def get_digest(
     request: Request,
     repo_url: str = Query(..., description="Git repository URL to analyze"),
@@ -68,6 +73,7 @@ def get_digest(
 
 
 @router.websocket("/ws/converter")
+@limiter.limit("10/minute")
 async def websocket_converter(
     websocket: WebSocket,
     repo_url: str = Query(..., description="Git repository URL to analyze"),
