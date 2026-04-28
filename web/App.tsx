@@ -82,8 +82,7 @@ const App: React.FC = () => {
     string | null
   >(null);
 
-  const websocketRef = useRef<WebSocket | null>(null);
-  const wsConnectionAttemptNumberRef = useRef<number>(0);
+
   const currentRepoInfoRef = useRef<{ owner: string; repo: string } | null>(
     null
   );
@@ -238,16 +237,7 @@ const App: React.FC = () => {
     setFilesToRenderInDiagram([]);
     currentRepoInfoRef.current = null;
     currentDefaultBranchForRequestRef.current = null;
-    wsConnectionAttemptNumberRef.current = 0;
 
-    if (
-      websocketRef.current &&
-      websocketRef.current.readyState !== WebSocket.CLOSED
-    ) {
-      websocketRef.current.onclose = null;
-      websocketRef.current.close(1000, "New request initiated");
-      console.log("Previous WebSocket connection closed due to new request.");
-    }
 
     if (!githubService) {
       setError("GitHub service is not available. Please refresh.");
@@ -293,280 +283,84 @@ const App: React.FC = () => {
       return;
     }
 
-    const initiateWebSocketConnection = () => {
-      wsConnectionAttemptNumberRef.current += 1;
-      const attemptNumber = wsConnectionAttemptNumberRef.current;
-
-      if (attemptNumber > 1) {
-        setProgressMessage(
-          `Connection attempt ${attemptNumber - 1
-          } failed. Retrying connection (attempt ${attemptNumber})...`
-        );
+    const initiateRequest = async () => {
+      setProgressMessage("Connecting to server for processing...");
+      setProgressPercent(10);
+      
+      const apiHost = "api.gitscape.ai";
+      let apiScheme: string;
+      if (apiHost === "api.gitscape.ai") {
+        apiScheme = "https";
       } else {
-        setProgressMessage("Connecting to server for processing...");
+        apiScheme = window.location.protocol === "https:" ? "https" : "http";
       }
 
-      const wsHost = "api.gitscape.ai";
-      let wsScheme: string;
-      if (wsHost === "api.gitscape.ai") {
-        wsScheme = "wss";
-      } else {
-        wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
-      }
-
-      const wsUrl = new URL(`${wsScheme}://${wsHost}/ws/converter`);
-      wsUrl.searchParams.append("repo_url", encodeURIComponent(repoUrl));
+      const apiUrl = new URL(`${apiScheme}://${apiHost}/converter`);
+      apiUrl.searchParams.append("repo_url", encodeURIComponent(repoUrl));
       if (githubToken) {
-        wsUrl.searchParams.append(
-          "github_token",
-          encodeURIComponent(githubToken)
-        );
+        apiUrl.searchParams.append("github_token", encodeURIComponent(githubToken));
       }
 
       try {
-        const ws = new WebSocket(wsUrl.toString());
-        websocketRef.current = ws;
+        const response = await fetch(apiUrl.toString(), {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+        });
 
-        ws.onopen = () => {
-          setProgressMessage(`Starting repository processing...`);
-          setProgressPercent(5);
-        };
-
-        ws.onmessage = async (event) => {
-          // ... (onmessage logic remains largely the same)
-          const rawEventData = event.data;
-          let parsedMessageData: any;
-
-          if (typeof rawEventData !== "string") {
-            console.error(
-              "Received non-string WebSocket message:",
-              rawEventData
-            );
-            setError("Received unexpected binary data from server.");
-            setIsLoading(false);
-            websocketRef.current?.close(1003, "Unsupported data type");
-            return;
-          }
-
+        if (!response.ok) {
+          let errorDetail = `We couldn't fetch the repository (HTTP ${response.status}).`;
           try {
-            parsedMessageData = JSON.parse(rawEventData);
-          } catch (jsonError) {
-            console.error(
-              "Received non-JSON string from WebSocket:",
-              rawEventData,
-              jsonError
-            );
-            setError(
-              `Received unparseable/non-JSON message from server: ${String(
-                rawEventData
-              ).substring(0, 100)}...`
-            );
-            setIsLoading(false);
-            websocketRef.current?.close(
-              1011,
-              "Unexpected non-JSON message from server"
-            );
-            return;
-          }
-
-          try {
-            if (
-              !parsedMessageData ||
-              typeof parsedMessageData.type !== "string"
-            ) {
-              throw new Error(
-                "Parsed WebSocket JSON message lacks a 'type' string field."
-              );
+            const errorData = await response.json();
+            if (errorData.detail) {
+              errorDetail = typeof errorData.detail === 'string' ? errorData.detail : JSON.stringify(errorData.detail);
+            } else if (errorData.message) {
+              errorDetail = errorData.message;
             }
-
-            switch (parsedMessageData.type) {
-              case "progress":
-                setProgressMessage(
-                  parsedMessageData.message || "Processing..."
-                );
-                if (typeof parsedMessageData.percentage === "number") {
-                  setProgressPercent((prev) =>
-                    Math.max(prev, Number(parsedMessageData.percentage))
-                  );
-                } else {
-                  console.warn(
-                    "Progress JSON message received without a 'percentage' number:",
-                    parsedMessageData
-                  );
-                }
-                break;
-              case "final_digest":
-              case "digest_complete":
-                const markdownDigest = parsedMessageData.digest;
-                if (
-                  typeof markdownDigest !== "string" ||
-                  markdownDigest.trim() === ""
-                ) {
-                  throw new Error(
-                    `WebSocket '${parsedMessageData.type}' message returned an empty or invalid digest.`
-                  );
-                }
-
-                const branchFromMessage = parsedMessageData.default_branch;
-                const branchForProcessing =
-                  branchFromMessage ||
-                  currentDefaultBranchForRequestRef.current;
-                const digestFilesCount =
-                  parsedMessageData.files_analyzed_count !== undefined
-                    ? Number(parsedMessageData.files_analyzed_count)
-                    : null;
-
-                if (!currentRepoInfoRef.current) {
-                  throw new Error(
-                    "Repository owner/name info missing for final processing."
-                  );
-                }
-                const { owner: currentOwner, repo: currentRepo } =
-                  currentRepoInfoRef.current;
-
-                await processSuccessfulDigestData(
-                  markdownDigest,
-                  currentOwner,
-                  currentRepo,
-                  branchForProcessing,
-                  digestFilesCount
-                );
-
-                websocketRef.current?.close(
-                  1000,
-                  `Process completed successfully (${parsedMessageData.type})`
-                );
-                break;
-              case "error":
-                const errorMessage =
-                  parsedMessageData.message ||
-                  "An error occurred during processing on the server.";
-                console.error(
-                  "Error message from server (via WebSocket JSON):",
-                  errorMessage
-                );
-                setError(errorMessage);
-                setProgressMessage("Server error occurred.");
-                setIsLoading(false);
-                setProgressPercent(0);
-                websocketRef.current?.close(
-                  1000,
-                  "Server error indicated in JSON message"
-                );
-                break;
-              default:
-                console.warn(
-                  "Received WebSocket JSON message with unhandled type:",
-                  parsedMessageData
-                );
-                setProgressMessage(
-                  `Unhandled server update type: ${parsedMessageData.type}`
-                );
-            }
-          } catch (processingError: any) {
-            console.error(
-              "Error processing parsed WebSocket JSON:",
-              processingError,
-              "Data:",
-              parsedMessageData,
-              "Original:",
-              rawEventData
-            );
-            setError(
-              `Client-side error processing server JSON: ${processingError.message
-              }. Raw: ${String(rawEventData).substring(0, 100)}...`
-            );
-            setProgressMessage("Error processing server update.");
-            setIsLoading(false);
-            websocketRef.current?.close(
-              4001,
-              "Client-side processing error of server JSON"
-            );
-          }
-        };
-
-        const handleFailedConnectionAttempt = (
-          errorType: string,
-          eventDetails: any
-        ) => {
-          console.error(
-            `WebSocket connection attempt ${attemptNumber} ${errorType}:`,
-            eventDetails
-          );
-          if (!digest) {
-            // Only retry if no digest has been successfully processed
-            if (attemptNumber < MAX_TOTAL_WEBSOCKET_ATTEMPTS) {
-              initiateWebSocketConnection(); // Retry
-            } else {
-              setError(
-                "We couldn't fetch the repository. Please add a GitHub Personal Access Token (PAT) and try again."
-              );
-              setProgressMessage("Connection failed after multiple attempts.");
-              setIsLoading(false);
-              setProgressPercent(0);
-            }
-          }
-        };
-
-        ws.onerror = (event) => {
-          handleFailedConnectionAttempt("error", event);
-        };
-
-        ws.onclose = (event) => {
-          console.log(
-            `WebSocket connection attempt ${attemptNumber} closed:`,
-            event.code,
-            event.reason,
-            "wasClean:",
-            event.wasClean
-          );
-          websocketRef.current = null;
-
-          if (!event.wasClean && !digest && isLoading) {
-            // Check isLoading to ensure this is for current request
-            handleFailedConnectionAttempt("closed uncleanly", event);
-          } else if (isLoading && !digest && !error) {
-            // If it closed cleanly but we are still loading and have no digest/error, something is wrong.
-            // This might happen if server closes connection prematurely without error/success.
-            if (attemptNumber >= MAX_TOTAL_WEBSOCKET_ATTEMPTS) {
-              setError(
-                "We couldn't fetch the repository. Please add a GitHub Personal Access Token (PAT) and try again."
-              );
-              setProgressMessage(
-                "Connection closed unexpectedly after all attempts."
-              );
-              setIsLoading(false);
-              setProgressPercent(0);
-            } else {
-              // Treat as a failed attempt and retry if not max attempts.
-              handleFailedConnectionAttempt("closed unexpectedly", event);
-            }
-          } else if (isLoading && !digest && error) {
-            // If there's already an error set by onmessage, no need to overwrite with generic PAT message.
-            // Just ensure loading state is false if not already.
-            setIsLoading(false);
-          }
-        };
-      } catch (err: any) {
-        console.error(
-          `Error setting up WebSocket (attempt ${attemptNumber}):`,
-          err
-        );
-        if (attemptNumber < MAX_TOTAL_WEBSOCKET_ATTEMPTS) {
-          initiateWebSocketConnection(); // Retry
-        } else {
-          setError(
-            err.message ||
-            "We couldn't fetch the repository. Please add a GitHub Personal Access Token (PAT) and try again."
-          );
-          setProgressMessage("Initialization error after multiple attempts.");
-          setIsLoading(false);
-          setProgressPercent(0);
+          } catch (e) {}
+          throw new Error(errorDetail);
         }
+
+        const data = await response.json();
+        
+        setProgressMessage("Digest generated. Finalizing...");
+        setProgressPercent(90);
+
+        const markdownDigest = data.digest;
+        if (!markdownDigest || typeof markdownDigest !== 'string') {
+          throw new Error("Invalid or empty digest returned by the server.");
+        }
+
+        const branchForProcessing = data.default_branch || currentDefaultBranchForRequestRef.current;
+        const digestFilesCount = data.files_analyzed_count !== undefined ? Number(data.files_analyzed_count) : null;
+
+        if (!currentRepoInfoRef.current) {
+          throw new Error("Repository owner/name info missing for final processing.");
+        }
+        const { owner: currentOwner, repo: currentRepo } = currentRepoInfoRef.current;
+
+        await processSuccessfulDigestData(
+          markdownDigest,
+          currentOwner,
+          currentRepo,
+          branchForProcessing,
+          digestFilesCount
+        );
+
+      } catch (err: any) {
+        console.error("Error fetching digest:", err);
+        setError(
+          err.message ||
+          "We couldn't fetch the repository. Please add a GitHub Personal Access Token (PAT) and try again."
+        );
+        setProgressMessage("Error occurred during request.");
+        setIsLoading(false);
+        setProgressPercent(0);
       }
     };
 
-    initiateWebSocketConnection(); // Start the first attempt
+    initiateRequest();
   }, [
     repoUrl,
     githubToken,
@@ -587,24 +381,6 @@ const App: React.FC = () => {
     setProgressPercent,
   ]);
 
-  useEffect(() => {
-    return () => {
-      if (websocketRef.current) {
-        console.log("App component unmounting. Closing WebSocket.");
-        websocketRef.current.onclose = null;
-        websocketRef.current.onerror = null;
-        websocketRef.current.onmessage = null;
-        websocketRef.current.onopen = null;
-        if (
-          websocketRef.current.readyState === WebSocket.OPEN ||
-          websocketRef.current.readyState === WebSocket.CONNECTING
-        ) {
-          websocketRef.current.close(1000, "Component unmounting");
-        }
-        websocketRef.current = null;
-      }
-    };
-  }, []);
 
   const diagramData: RawDiagramNode | null = useMemo(() => {
     if (processedRepoName && filesToRenderInDiagram.length > 0) {
