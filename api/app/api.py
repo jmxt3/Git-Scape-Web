@@ -205,7 +205,6 @@ def get_framework_export(
 
 
 @router.websocket("/ws/converter")
-@limiter.limit("10/minute")
 async def websocket_converter(
     websocket: WebSocket,
     repo_url: str = Query(..., description="Git repository URL to analyze"),
