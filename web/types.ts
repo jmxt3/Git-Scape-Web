@@ -48,24 +48,7 @@ export interface GitHubTreeResponse {
   truncated: boolean;
 }
 
-export interface GroundingChunkWeb {
-  uri: string;
-  title: string;
-}
-export interface GroundingChunk {
-  web?: GroundingChunkWeb;
-  // other types of chunks can be added here
-}
 
-export interface GroundingMetadata {
-  groundingChunks?: GroundingChunk[];
-  // other metadata fields can be added here
-}
-
-export interface Candidate {
-  groundingMetadata?: GroundingMetadata;
-  // other candidate fields
-}
 
 // Types for D3 Diagram
 export interface GithubTreeItem {
@@ -87,15 +70,7 @@ export interface RawDiagramNode {
   // These are added by D3 to its wrapper nodes or managed by AppHierarchyPointNode.
 }
 
-// Type for chat messages
-export interface ChatMessage {
-  id: string;
-  text: string;
-  sender: 'user' | 'assistant';
-  timestamp: Date;
-  error?: boolean;
-  candidates?: Candidate[]; // For AI messages, to store grounding metadata if available
-}
+
 
 // Interface for data cached in localStorage
 export interface CachedRepoOutput {

@@ -8,7 +8,6 @@ import React, {
 import { Header } from "./components/Header";
 import { RepoInput } from "./components/RepoInput";
 import { GithubTokenModal } from "./components/GithubTokenModal";
-import { GeminiApiKeyModal } from "./components/GeminiApiKeyModal";
 import { GithubService, GithubFile } from "./services/githubService";
 import { OutputTabs } from "./components/OutputTabs";
 import { transformGithubTreeToD3Hierarchy } from "./components/diagramUtils";
@@ -16,7 +15,6 @@ import { DiagramFullscreenModal } from "./components/DiagramFullscreenModal";
 import {
   GITHUB_TOKEN_LOCAL_STORAGE_KEY,
   REPO_URL_LOCAL_STORAGE_KEY,
-  GEMINI_API_KEY_LOCAL_STORAGE_KEY,
   CACHED_OUTPUT_PREFIX,
 } from "./constants";
 import { RawDiagramNode, CachedRepoOutput } from "./types";
@@ -60,11 +58,6 @@ const App: React.FC = () => {
   const [githubToken, setGithubToken] = useState<string | null>(null);
   const [showTokenModal, setShowTokenModal] = useState<boolean>(false);
 
-  const [userProvidedGeminiApiKey, setUserProvidedGeminiApiKey] = useState<
-    string | null
-  >(null);
-  const [showGeminiApiModal, setShowGeminiApiModal] = useState<boolean>(false);
-
   const [processedRepoName, setProcessedRepoName] = useState<
     string | undefined
   >(undefined);
@@ -104,16 +97,6 @@ const App: React.FC = () => {
       }
     } catch (e) {
       console.warn("Failed to read GitHub token from localStorage:", e);
-    }
-    try {
-      const storedGeminiKey = localStorage.getItem(
-        GEMINI_API_KEY_LOCAL_STORAGE_KEY
-      );
-      if (storedGeminiKey) {
-        setUserProvidedGeminiApiKey(storedGeminiKey);
-      }
-    } catch (e) {
-      console.warn("Failed to read Gemini API key from localStorage:", e);
     }
 
     if (repoUrl && !isLoading && !digest && !error) {
@@ -162,23 +145,7 @@ const App: React.FC = () => {
     setShowTokenModal(false);
   };
 
-  const handleSaveUserGeminiApiKey = (apiKey: string) => {
-    const trimmedKey = apiKey.trim();
-    if (trimmedKey) {
-      storeInLocalStorage(GEMINI_API_KEY_LOCAL_STORAGE_KEY, trimmedKey);
-      setUserProvidedGeminiApiKey(trimmedKey);
-    } else {
-      storeInLocalStorage(GEMINI_API_KEY_LOCAL_STORAGE_KEY, null);
-      setUserProvidedGeminiApiKey(null);
-    }
-    setShowGeminiApiModal(false);
-  };
 
-  const handleClearUserGeminiApiKey = () => {
-    storeInLocalStorage(GEMINI_API_KEY_LOCAL_STORAGE_KEY, null);
-    setUserProvidedGeminiApiKey(null);
-    setShowGeminiApiModal(false);
-  };
 
   const processSuccessfulDigestData = useCallback(
     async (
@@ -332,8 +299,7 @@ const App: React.FC = () => {
 
       if (attemptNumber > 1) {
         setProgressMessage(
-          `Connection attempt ${
-            attemptNumber - 1
+          `Connection attempt ${attemptNumber - 1
           } failed. Retrying connection (attempt ${attemptNumber})...`
         );
       } else {
@@ -507,8 +473,7 @@ const App: React.FC = () => {
               rawEventData
             );
             setError(
-              `Client-side error processing server JSON: ${
-                processingError.message
+              `Client-side error processing server JSON: ${processingError.message
               }. Raw: ${String(rawEventData).substring(0, 100)}...`
             );
             setProgressMessage("Error processing server update.");
@@ -592,7 +557,7 @@ const App: React.FC = () => {
         } else {
           setError(
             err.message ||
-              "We couldn't fetch the repository. Please add a GitHub Personal Access Token (PAT) and try again."
+            "We couldn't fetch the repository. Please add a GitHub Personal Access Token (PAT) and try again."
           );
           setProgressMessage("Initialization error after multiple attempts.");
           setIsLoading(false);
@@ -693,8 +658,6 @@ const App: React.FC = () => {
       <Header
         onToggleTokenModal={() => setShowTokenModal(true)}
         hasToken={!!githubToken}
-        onToggleGeminiApiModal={() => setShowGeminiApiModal(true)}
-        hasUserGeminiApiKey={!!userProvidedGeminiApiKey}
       />
       <div className="m-1">
         <div className="relative w-full max-w-4xl mx-auto flex sm:flex-row flex-col justify-center items-start sm:items-center pt-8 sm:pt-0">
@@ -719,9 +682,7 @@ const App: React.FC = () => {
           </svg>
           <div className="text-center w-full flex flex-col items-center mt-12">
             <h1 className="text-4xl sm:text-5xl sm:pt-12 lg:pt-5 md:text-6xl lg:text-7xl font-bold tracking-tighter w-full inline-block relative">
-              Understand Any Repo
-              <br />
-              In Seconds&nbsp;
+              Add Skills To Your Agents
             </h1>
           </div>
           <svg
@@ -746,7 +707,7 @@ const App: React.FC = () => {
           </svg>
         </div>
 
-        <div className="m-12 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto px-4">
+        <div className="m-12 grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-4xl mx-auto px-4">
           <div className="bg-slate-800/60 backdrop-blur-md p-6 rounded-xl shadow-xl border border-slate-700/80 hover:border-slate-600 transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-2xl">
             <div className="flex items-center mb-4">
               <div className="p-2 bg-violet-500/20 rounded-full mr-3 shrink-0">
@@ -803,33 +764,7 @@ const App: React.FC = () => {
             </p>
           </div>
 
-          <div className="bg-slate-800/60 backdrop-blur-md p-6 rounded-xl shadow-xl border border-slate-700/80 hover:border-slate-600 transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-2xl">
-            <div className="flex items-center mb-4">
-              <div className="p-2 bg-sky-500/20 rounded-full mr-3 shrink-0">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-6 h-6 text-sky-400"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 01.778-.332 48.294 48.294 0 005.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-sky-400">
-                Code Assistant
-              </h3>
-            </div>
-            <p className="text-sm text-slate-300 leading-relaxed">
-              Instantly explain, debug, refactor, and discuss code with an AI
-              that understands your repository.
-            </p>
-          </div>
+
         </div>
       </div>
       <main className="container mx-auto px-4 flex-grow max-w-4xl">
@@ -881,7 +816,6 @@ const App: React.FC = () => {
                 repoName={processedRepoName!}
                 repoNameForFilename={repoNameForFilename}
                 defaultBranch={currentDefaultBranch}
-                userProvidedGeminiApiKey={userProvidedGeminiApiKey}
                 onOpenDiagramFullscreenModal={handleOpenDiagramFullscreenModal}
               />
             </section>
@@ -911,15 +845,7 @@ const App: React.FC = () => {
           currentToken={githubToken || ""}
         />
       )}
-      {showGeminiApiModal && (
-        <GeminiApiKeyModal
-          isOpen={showGeminiApiModal}
-          onClose={() => setShowGeminiApiModal(false)}
-          onSaveKey={handleSaveUserGeminiApiKey}
-          onClearKey={handleClearUserGeminiApiKey}
-          currentKey={userProvidedGeminiApiKey || ""}
-        />
-      )}
+
       {showDiagramFullscreenModal &&
         diagramDataForModal &&
         repoNameForModal && (

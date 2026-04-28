@@ -9,9 +9,9 @@ interface RepoInputProps {
 }
 
 const QUICK_LOAD_REPOS = [
+  { name: "OpenClaw", url: "https://github.com/openclaw/openclaw" },
   { name: "FastAPI", url: "https://github.com/tiangolo/fastapi" },
-  { name: "Redis", url: "https://github.com/redis/redis" },
-  { name: "Reflex", url: "https://github.com/reflex-dev/reflex" },
+  { name: "Codex", url: "https://github.com/openai/codex" },
   { name: "LangGraph", url: "https://github.com/langchain-ai/langgraph" },
   { name: "ADK", url: "https://github.com/google/adk-python" },
 ];

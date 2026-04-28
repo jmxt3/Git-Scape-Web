@@ -1,11 +1,14 @@
-# Git Scape AI
+# Git Scape AI — Web
 
-**Understand any GitHub repository in seconds.**
+**The React frontend for [Git Scape AI](https://gitscape.ai/).**
 
 ![React](https://img.shields.io/badge/React-61DAFB.svg?style=for-the-badge&logo=React&logoColor=black)
-![Google Cloud](https://img.shields.io/badge/Google%20Cloud-4285F4.svg?style=for-the-badge&logo=Google-Cloud&logoColor=white)
-![Gemini](https://img.shields.io/badge/Google%20Gemini-8E75B2.svg?style=for-the-badge&logo=Google-Gemini&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6.svg?style=for-the-badge&logo=TypeScript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-06B6D4.svg?style=for-the-badge&logo=Tailwind-CSS&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF.svg?style=for-the-badge&logo=Vite&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED.svg?style=for-the-badge&logo=Docker&logoColor=white)
+
+> Part of the [GitScape monorepo](../README.md). See also: [`api/`](../api/README.md).
 
 ---
 
@@ -13,134 +16,158 @@
 
 ![GitScape](https://ik.imagekit.io/lmewht1ww/Git%20Scape%20AI/Screenshot_12.png?updatedAt=1748956392835)
 
-Git Scape AI is an open-source tool that instantly generates AI-ready text digests of GitHub codebases, visualizes repository structures with interactive diagrams, and enables contextual AI-powered chat to help you understand, debug, and refactor code. It supports both public and private repositories.
+The `web/` workspace is the browser-based interface for Git Scape AI. It lets you analyze any public or private GitHub repository, visualize its structure as an interactive diagram, read a Markdown digest, and chat with an AI assistant that has full context of the codebase.
 
-- **AI Code Summaries:** Get concise, AI-generated summaries of any GitHub repo.
-- **Interactive Visualizations:** Explore your codebase structure with beautiful, interactive diagrams.
-- **AI Chat with Code:** Ask questions about your codebase and get instant, context-aware answers.
-- **Privacy First:** All API keys are stored securely in your browser.
-- **Backend API:** Integrate with the official [Git Scape API](https://github.com/jmxt3/Git-Scape-API) for advanced repository analysis and automation.
+### Key Features
+
+- **AI Code Summaries** — Concise, AI-generated digests of any GitHub repo via the backend API.
+- **Interactive Diagram** — D3-powered tree visualization of the repository file structure.
+- **AI Chat with Code** — Contextual Q&A powered by the Gemini API directly in the browser.
+- **URL Converter** — Transforms a GitHub URL into API-compatible repo parameters.
+- **Privacy First** — Your Gemini API key and GitHub PAT are stored only in the browser (never sent to our servers).
+
+---
+
+## 🏗️ Architecture
+
+```
+web/
+├── App.tsx                 # Root orchestrator — state, routing, data flow
+├── index.tsx               # React entry point
+├── index.html              # HTML shell (Vite)
+├── types.ts                # Shared TypeScript interfaces
+├── constants.ts            # API base URLs, config values
+├── components/
+│   ├── Header.tsx          # Top navigation bar
+│   ├── RepoInput.tsx       # GitHub URL input & repo resolver
+│   ├── DigestOutput.tsx    # Markdown digest renderer
+│   ├── Diagram.tsx         # D3 interactive file-tree diagram
+│   ├── DiagramFullscreenModal.tsx
+│   ├── OutputTabs.tsx      # Tabs: Digest / Diagram / Chat
+│   ├── RepoChat.tsx        # AI chat panel (Gemini)
+│   ├── UrlConverter.tsx    # GitHub URL → path converter utility
+│   ├── GeminiApiKeyModal.tsx
+│   ├── GithubTokenModal.tsx
+│   ├── LoadingSpinner.tsx
+│   └── diagramUtils.ts     # D3 tree layout helpers
+├── services/               # External integrations
+│   └── ...                 # GitHub & Gemini API calls
+├── public/                 # Static assets
+├── vite.config.ts
+├── tailwind.config.js
+└── Dockerfile              # Nginx-based production container
+```
+
+### Technology Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | React 19 |
+| Language | TypeScript 5.7 |
+| Bundler | Vite 6 |
+| Styling | Tailwind CSS 4 |
+| Diagrams | D3.js 7 |
+| AI | `@google/genai` (Gemini) |
+| Deployment | Docker + Nginx → Google Cloud Run |
 
 ---
 
 ## 🏁 Quick Start
 
 ### Prerequisites
-- [Node.js](https://nodejs.org/) (v18+ recommended)
 
-### 1. Clone the Repository
-```bash
-git clone https://github.com/your-username/git-scape-ai.git
-cd git-scape-ai
-```
+- [Node.js](https://nodejs.org/) v18+
 
-### 2. Install Dependencies
+### 1. Install Dependencies
+
 ```bash
+cd web
 npm install
 ```
 
-### 3. Set Up API Keys
-- **Gemini API Key:**
-  - Get your [Gemini API Key](https://ai.google.dev/gemini-api/docs/api-key).
-  - Create a `.env.local` file in the project root:
-    ```env
-    GEMINI_API_KEY=your-gemini-api-key-here
-    ```
-- **GitHub Personal Access Token (PAT):**
-  - [Generate a GitHub PAT](https://github.com/settings/tokens/new?scopes=repo&description=GitRepoDigestAI) (for private repos).
-  - You can add it via the app UI (no need to store in `.env`).
+### 2. Configure Environment
 
-### 4. Run the App
+Create a `.env.local` file in the `web/` directory:
+
+```env
+VITE_GEMINI_API_KEY=your-gemini-api-key-here
+```
+
+- Get your [Gemini API Key](https://ai.google.dev/gemini-api/docs/api-key).
+- Your **GitHub Personal Access Token** (PAT) for private repos can be entered directly in the app UI — no `.env` needed.
+
+### 3. Run the Dev Server
+
 ```bash
 npm run dev
+# → http://localhost:5173
 ```
-Visit [http://localhost:5173](http://localhost:5173) in your browser.
+
+### Other Scripts
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start local dev server (HMR) |
+| `npm run build` | Build production bundle |
+| `npm run preview` | Preview the production build |
 
 ---
 
-## 🐳 Docker Deployment
+## 🐳 Docker
 
-You can build and run the app in a Docker container, suitable for deployment to Google Cloud Run or any container platform.
+The `web/` container serves the Vite production build via **Nginx** on port `8080`.
 
-### 1. Build the Docker Image
 ```bash
+# Build
 docker build -t git_scape_web .
-```
 
-### 2. Run the Docker Container Locally
-```bash
+# Run locally
 docker run -d -p 8080:8080 --name git_scape_web_local git_scape_web
+# → http://localhost:8080
 ```
 
-Then visit [http://localhost:8080](http://localhost:8080) in your browser.
+### Deploy to Google Cloud Run
+
+```bash
+# Build & push via Cloud Build
+gcloud builds submit --tag REGION-docker.pkg.dev/PROJECT_ID/REPO/git_scape_web:latest .
+
+# Deploy
+gcloud run deploy git-scape-web \
+  --image REGION-docker.pkg.dev/PROJECT_ID/REPO/git_scape_web:latest \
+  --platform managed \
+  --region REGION \
+  --allow-unauthenticated \
+  --project PROJECT_ID
+```
+
+---
+
+## 🛡️ Security & Privacy
+
+- **API keys** are never proxied through any GitScape server — they go directly from your browser to the Gemini or GitHub APIs.
+- **No tracking**: Analytical data is opt-in and anonymized.
+- **Open Source**: Audit the code, fork it, or self-host it.
 
 ---
 
 ## 🧑‍💻 Contributing
 
-We welcome contributions of all kinds! Here’s how to get started:
+1. Fork the repo and create a feature branch.
+2. Make your changes inside `web/`.
+3. Test with `npm run dev`.
+4. Commit, push, and open a Pull Request.
 
-1. **Fork the repository** and create your branch:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-2. **Make your changes** (see [Project Structure](#project-structure)).
-3. **Test locally** (`npm run dev`).
-4. **Commit and push** your changes.
-5. **Open a Pull Request** with a clear description.
-
-### Code Style
-- Uses [TypeScript](https://www.typescriptlang.org/) and [React 19](https://react.dev/).
-- Styling via [Tailwind CSS](https://tailwindcss.com/).
-- Linting and formatting: please follow the existing code conventions.
-
----
-
-## 🗂️ Project Structure
-
-```
-├── App.tsx                # Main app logic
-├── components/            # All React components
-├── services/              # API and utility services
-├── types.ts               # TypeScript types
-├── constants.ts           # App-wide constants
-├── index.html             # HTML entry point
-├── vite.config.ts         # Vite config
-├── ...
-```
-
-- **components/**: UI and feature components (modals, diagrams, chat, etc.)
-- **services/**: API integrations (GitHub, Gemini)
-- **types.ts**: Shared TypeScript types/interfaces
-- **constants.ts**: Centralized constants (API endpoints, keys, etc.)
-
----
-
-## 🛡️ Security & Privacy
-- **API keys** are never sent to any server except the official Gemini or GitHub APIs.
-- **No tracking**: All analytics are opt-in and anonymized.
-- **Open Source**: Review the code, suggest improvements, or fork for your own use!
-
----
-
-## 🖥️ Backend API
-
-Looking to automate repository analysis, generate digests, or build your own integrations? Check out the official [Git Scape API](https://github.com/jmxt3/Git-Scape-API) — a robust, open-source FastAPI backend that powers Git Scape AI. It supports:
-
-- RESTful endpoints for digest generation
-- Real-time progress via WebSockets
-- Easy deployment (Docker & Google Cloud Run ready)
-- Designed for scalability and security
-
-> **Get started:** [Git Scape API on GitHub](https://github.com/jmxt3/Git-Scape-API)
+**Code style:** TypeScript + React conventions, Tailwind CSS, follow existing patterns.
 
 ---
 
 ## 📚 Resources
+
+- [Git Scape AI Website](https://gitscape.ai/)
 - [Gemini API Key Docs](https://ai.google.dev/gemini-api/docs/api-key)
 - [GitHub PAT Docs](https://github.com/settings/tokens/new?scopes=repo&description=GitRepoDigestAI)
-- [Git Scape AI Website](https://gitscape.ai/)
-- [Git Scape API (Backend)](https://github.com/jmxt3/Git-Scape-API)
+- [Git Scape API (Backend)](../api/README.md)
 
 ---
 

@@ -1,213 +1,199 @@
-# GitScape API
+# Git Scape AI — API
+
+**The FastAPI backend for [Git Scape AI](https://gitscape.ai/).**
 
 ![Python](https://img.shields.io/badge/Python-3776AB.svg?style=for-the-badge&logo=Python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688.svg?style=for-the-badge&logo=FastAPI&logoColor=white)
 ![Google Cloud](https://img.shields.io/badge/Google%20Cloud-4285F4.svg?style=for-the-badge&logo=Google-Cloud&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED.svg?style=for-the-badge&logo=Docker&logoColor=white)
-![Linux](https://img.shields.io/badge/Linux-FCC624.svg?style=for-the-badge&logo=Linux&logoColor=black)
+
+> Part of the [GitScape monorepo](../README.md). See also: [`web/`](../web/README.md).
 
 ---
 
-## Project Overview
+## 🚀 Overview
 
-GitScape API is the official backend for [GitScape](https://gitscape.ai/), a platform for generating structured digests and summaries from any git repository. This API powers the [GitScape Web](https://github.com/jmxt3/Git-Scape-Web) frontend and is designed for extensibility, performance, and ease of deployment (notably on Google Cloud Run).
+The `api/` workspace is the backend service that powers Git Scape AI. It clones any public or private GitHub repository, analyzes its structure, and streams a structured Markdown digest back to the client. It exposes both a standard HTTP endpoint and a WebSocket endpoint for real-time progress updates.
 
-- **Main repo:** https://github.com/jmxt3/Git-Scape-Web
-- **Live site:** https://gitscape.ai/
+### Key Features
 
-## Architecture & Project Structure
+- **REST endpoint** — Blocking HTTP digest generation (`GET /converter`).
+- **WebSocket endpoint** — Real-time streaming with live progress (`WS /ws/converter`).
+- **Rate limiting** — Per-IP throttling via SlowAPI to protect the service.
+- **Request timing** — `X-Process-Time-Sec` header on every response for observability.
+- **Cloud Run ready** — Listens on the `PORT` env variable, defaults to `8080`.
 
-- `main.py` – FastAPI entrypoint, defines API and WebSocket endpoints.
-- `converter.py` – Core logic for cloning, analyzing, and digesting git repositories.
-- `app/` – Application package:
-  - `api.py` – FastAPI app factory and CORS setup.
-  - `config.py` – Environment and settings management.
-- `requirements.txt` / `pyproject.toml` – Python dependencies.
-- `Dockerfile` – Containerization for deployment.
-- `.env.example` – Example environment configuration.
+---
 
-## API Overview
+## 🏗️ Architecture
 
-- `GET /` – Health check and welcome message.
-- `GET /converter` – Clone a git repo and return a Markdown digest (blocking HTTP).
-- `WS /ws/converter` – WebSocket endpoint for real-time progress and digest streaming.
+```
+api/
+├── main.py               # FastAPI entrypoint: middleware, rate limiter, router mounting
+├── app/
+│   ├── api.py            # App factory (CORS, lifespan), all HTTP & WebSocket routes
+│   ├── converter.py      # Core logic: clone → analyze → build digest
+│   └── config.py         # Pydantic Settings (env-based configuration)
+├── pyproject.toml        # Project metadata & dependencies
+├── requirements.txt      # Pinned pip requirements
+├── Dockerfile            # Production container (Python + uvicorn)
+└── .env.example          # Environment variable template
+```
 
-See the [OpenAPI docs](http://localhost:8000/docs) when running locally for full details.
+### Request Flow
 
-## Getting Started (Development Setup)
+```
+Client
+  │
+  ├─ GET /converter?repo=...
+  │      └─ api.py → converter.py → Markdown digest (JSON response)
+  │
+  └─ WS /ws/converter?repo=...
+         └─ api.py → converter.py → streaming progress + final digest
+```
 
-1. **Clone the repo:**
-   ```bash
-   git clone https://github.com/jmxt3/Git-Scape-API.git
-   cd Git-Scape-API
-   ```
-2. **Install [uv](https://github.com/astral-sh/uv) (Python package manager):**
-   - On macOS and Linux:
-     ```bash
-     curl -LsSf https://astral.sh/uv/install.sh | sh
-     ```
-   - Or with pip (if you already have Python):
-     ```bash
-     pip install uv
-     # or
-     pipx install uv
-     ```
-   - See [uv installation docs](https://docs.astral.sh/uv/getting-started/installation/) for more options.
+### Technology Stack
 
-3. **(Optional) Install Python with uv:**
-   - If you don't have Python 3.10+ installed, you can let uv manage it:
-     ```bash
-     uv python install 3.10
-     # or for the latest version:
-     uv python install
-     ```
-   - uv will automatically use your system Python if available, or install as needed.
+| Layer | Technology |
+|---|---|
+| Framework | FastAPI |
+| Language | Python 3.12 |
+| Package Manager | [`uv`](https://github.com/astral-sh/uv) |
+| ASGI Server | Uvicorn |
+| Rate Limiting | SlowAPI |
+| Deployment | Docker → Google Cloud Run |
 
-4. **Create a virtual environment and install dependencies:**
-   ```bash
-   uv venv
-   source .venv/bin/activate
-   uv sync
-   ```
+---
 
-5. **Copy environment config:**
-   ```bash
-   cp .env.example .env
-   # Edit .env as needed
-   ```
-6. **Run the API locally:**
-   ```bash
-   uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-   # or
-   fastapi dev
-   ```
-7. **Access docs:**
-   - Swagger UI: [http://localhost:8000/docs](http://localhost:8000/docs)
-   - ReDoc: [http://localhost:8000/redoc](http://localhost:8000/redoc)
+## 🏁 Quick Start
 
-## Testing
+### Prerequisites
 
-*Tests are not yet included. PRs for test coverage are welcome!*
+- Python 3.12+
+- [`uv`](https://github.com/astral-sh/uv) — fast Python package manager
 
-## Code Style & Conventions
+**Install `uv`:**
+```bash
+# macOS / Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-- Follow [PEP8](https://www.python.org/dev/peps/pep-0008/) and use [black](https://black.readthedocs.io/) for formatting.
-- Use type hints and docstrings for all public functions.
-- Keep API endpoints and business logic separated (see `main.py` vs `converter.py`).
+# or via pip
+pip install uv
+```
 
-## How to Contribute
+### 1. Create Environment & Install Dependencies
 
-1. Fork this repo and create a feature branch.
-2. Make your changes with clear commit messages.
-3. Ensure your code is formatted and type-checked.
-4. Open a pull request with a clear description.
+```bash
+cd api
+uv venv
+source .venv/bin/activate      # Windows: .venv\Scripts\activate
+uv sync
+```
+
+### 2. Configure Environment
+
+```bash
+cp .env.example .env
+# Edit .env as needed
+```
+
+`.env.example` template:
+```env
+ENVIRONMENT=development
+APP_NAME="GitScape API"
+APP_DESCRIPTION="The official API for GitScape, a tool for generating digests from any git repositories."
+APP_VERSION="0.1.0"
+```
+
+### 3. Run the API
+
+```bash
+# Development (with hot reload)
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+# or
+fastapi dev
+
+# Production
+uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
+```
+
+### 4. Explore the Docs
+
+| Interface | URL |
+|---|---|
+| Swagger UI | http://localhost:8000/docs |
+| ReDoc | http://localhost:8000/redoc |
+
+---
+
+## 📡 API Reference
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/` | Health check — returns service name & status |
+| `GET` | `/converter` | Clone a repo and return a Markdown digest (blocking) |
+| `WS` | `/ws/converter` | Real-time streaming digest with live progress events |
+
+All endpoints accept repository parameters as query strings. See `/docs` for full schema.
+
+---
+
+## 🐳 Docker
+
+```bash
+# Build
+docker build -t git_scape_api .
+
+# Run locally
+docker run -d -p 8080:8080 --name git_scape_api_local git_scape_api
+# → http://localhost:8080/docs
+
+# Cleanup
+docker stop git_scape_api_local && docker rm git_scape_api_local && docker rmi git_scape_api
+```
+
+### Deploy to Google Cloud Run
+
+```bash
+# 1. Enable required APIs
+gcloud services enable run.googleapis.com artifactregistry.googleapis.com
+
+# 2. Build & push via Cloud Build
+gcloud builds submit \
+  --tag REGION-docker.pkg.dev/PROJECT_ID/REPO/git_scape_api:latest .
+
+# 3. Deploy
+gcloud run deploy git-scape-api \
+  --image REGION-docker.pkg.dev/PROJECT_ID/REPO/git_scape_api:latest \
+  --platform managed \
+  --region REGION \
+  --allow-unauthenticated \
+  --project PROJECT_ID
+```
+
+> **Cloud Run note:** The container reads the `PORT` env variable injected by Cloud Run and defaults to `8080` if absent. Keep your service stateless — any persistent state should live in Cloud SQL, Firestore, or Cloud Storage.
+
+---
+
+## 🧑‍💻 Contributing
+
+1. Fork the repo and create a feature branch.
+2. Make your changes inside `api/`.
+3. Ensure code is formatted (`black`) and type-checked.
+4. Open a Pull Request with a clear description.
 5. For bugs or feature requests, open a [GitHub Issue](https://github.com/jmxt3/Git-Scape-API/issues).
 
-## Community & Support
-
-- Main web repo: https://github.com/jmxt3/Git-Scape-Web
-- Website: https://gitscape.ai/
-- Issues: https://github.com/jmxt3/Git-Scape-API/issues
+**Code style:** PEP8, `black` formatting, type hints + docstrings on all public functions. Keep API routing (`api.py`) and business logic (`converter.py`) separate.
 
 ---
 
-## Quick Commands
-
-<!-- dev -->
-fastapi dev
-or
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-
-<!-- production -->
-uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
-
-## Docker Commands
-docker ps
-docker build -t git_scape_api .
-docker images
-docker run -d -p 8080:8080 --name git_scape_container git_scape_api
-
-docker stop git_scape_container
-docker rm git_scape_container
-docker rmi git_scape_api
-
-## Features
-
-- RESTful API with CRUD operations
-- Interactive API documentation with Swagger UI
-- Health check endpoint for monitoring
-- Docker containerization for Cloud Run deployment
-- Environment variable configuration
-
-## Deployment Notes for Google Cloud Run:
-
-These are general steps you would follow to deploy this application to Google Cloud Run. You'll need `gcloud` CLI installed and configured.
-
-1.  **Enable APIs:**
-    * Ensure the Cloud Run API and Artifact Registry API (or Container Registry API) are enabled for your Google Cloud project.
-    ```bash
-    gcloud services enable run.googleapis.com
-    gcloud services enable artifactregistry.googleapis.com
-    ```
-
-2.  **Authenticate gcloud:**
-    * If you haven't already, authenticate the `gcloud` CLI:
-    ```bash
-    gcloud auth login
-    gcloud auth configure-docker
-    ```
-    (You might need to specify a region for Docker, e.g., `gcloud auth configure-docker us-central1-docker.pkg.dev`)
-
-3.  **Set Project ID:**
-    * Set your current project (replace `YOUR_PROJECT_ID`):
-    ```bash
-    gcloud config set project YOUR_PROJECT_ID
-    ```
-
-4.  **Build the Docker Image:**
-    * Navigate to the directory containing `main.py`, `Dockerfile`, and `requirements.txt`.
-    * Build the image using Cloud Build (recommended) or locally with Docker.
-        * **Using Cloud Build (builds in the cloud and pushes to Artifact Registry):**
-            Replace `YOUR_REGION`, `YOUR_PROJECT_ID`, and `YOUR_IMAGE_NAME`.
-            ```bash
-            gcloud builds submit --tag YOUR_REGION-docker.pkg.dev/YOUR_PROJECT_ID/REPOSITORY_NAME/YOUR_IMAGE_NAME:latest .
-            ```
-            (If you don't have an Artifact Registry repository, you'll need to create one first: `gcloud artifacts repositories create REPOSITORY_NAME --repository-format=docker --location=YOUR_REGION`)
-
-        * **Building locally with Docker (then push):**
-            ```bash
-            docker build -t YOUR_REGION-docker.pkg.dev/YOUR_PROJECT_ID/REPOSITORY_NAME/YOUR_IMAGE_NAME:latest .
-            docker push YOUR_REGION-docker.pkg.dev/YOUR_PROJECT_ID/REPOSITORY_NAME/YOUR_IMAGE_NAME:latest
-            ```
-
-5.  **Deploy to Cloud Run:**
-    * Deploy the container image to Cloud Run. Replace placeholders.
-    ```bash
-    gcloud run deploy YOUR_SERVICE_NAME \
-        --image YOUR_REGION-docker.pkg.dev/YOUR_PROJECT_ID/REPOSITORY_NAME/YOUR_IMAGE_NAME:latest \
-        --platform managed \
-        --region YOUR_DEPLOY_REGION \
-        --allow-unauthenticated \
-        --project YOUR_PROJECT_ID
-    ```
-    * `YOUR_SERVICE_NAME`: A name for your Cloud Run service (e.g., `my-fastapi-app`).
-    * `YOUR_DEPLOY_REGION`: The region where you want to deploy (e.g., `us-central1`).
-    * `--allow-unauthenticated`: Makes the service publicly accessible. Remove this if you want to manage access via IAM.
-
-6.  **Access Your Service:**
-    * After deployment, Cloud Run will provide a URL for your service. You can access your FastAPI app at that URL.
-
-**Important Considerations for Cloud Run:**
-* **PORT Environment Variable:** Cloud Run sets a `PORT` environment variable that your application must listen on. The `Dockerfile`'s `CMD` handles this by using `${PORT:-8080}`, which means it will use the `PORT` variable if set, or default to `8080` otherwise.
-* **Statelessness:** Cloud Run services should be stateless. Any persistent state should be stored in external services like Cloud SQL, Firestore, or Cloud Storage.
-* **Concurrency:** Configure concurrency settings based on your application's needs.
-* **Logging & Monitoring:** Cloud Run integrates with Cloud Logging and Cloud Monitoring. Standard output (`print` statements, logging libraries) will be captured.
-
 ## 📚 Resources
-- [Gemini API Key Docs](https://ai.google.dev/gemini-api/docs/api-key)
-- [GitHub PAT Docs](https://github.com/settings/tokens/new?scopes=repo&description=GitRepoDigestAI)
+
 - [Git Scape AI Website](https://gitscape.ai/)
-- [Git Scape WEB (Frontend)](https://github.com/jmxt3/Git-Scape-Web)
+- [FastAPI Docs](https://fastapi.tiangolo.com/)
+- [uv Docs](https://docs.astral.sh/uv/)
+- [Google Cloud Run Docs](https://cloud.google.com/run/docs)
+- [Git Scape Web (Frontend)](../web/README.md)
 
 ---
 

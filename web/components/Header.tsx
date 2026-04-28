@@ -4,8 +4,6 @@ import GitHubButton from 'react-github-btn'
 interface HeaderProps {
   onToggleTokenModal: () => void;
   hasToken: boolean;
-  onToggleGeminiApiModal: () => void;
-  hasUserGeminiApiKey: boolean;
 }
 
 
@@ -14,15 +12,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   onToggleTokenModal,
   hasToken,
-  onToggleGeminiApiModal,
-  hasUserGeminiApiKey
 }) => {
-  const buttonBaseClasses = "flex items-center px-4 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 transition-colors duration-150 ease-in-out shadow-sm";
-
-  const handleToggleGeminiModal = () => {
-    onToggleGeminiApiModal();
-  };
-
   const handleToggleTokenModal = () => {
     onToggleTokenModal();
   };
@@ -49,22 +39,9 @@ export const Header: React.FC<HeaderProps> = ({
             </GitHubButton>
           </div>
           <button
-            onClick={handleToggleGeminiModal}
-            title={hasUserGeminiApiKey ? "Update or Clear Your Gemini API Key" : "API Key"}
-            className={`${buttonBaseClasses} ${
-              hasUserGeminiApiKey
-                ? 'bg-violet-600 hover:bg-violet-700 text-white focus:ring-violet-500'
-                : 'bg-slate-700 hover:bg-slate-600 text-slate-300 focus:ring-violet-500'
-            }`}
-            aria-label={hasUserGeminiApiKey ? "Gemini API Key is set. Click to manage." : "Set your Gemini API Key"}
-          >
-            {hasUserGeminiApiKey ? 'Gemini Key Set' : 'API Key'}
-          </button>
-
-          <button
             onClick={handleToggleTokenModal}
             title={hasToken ? "Update GitHub Token" : "Private Repos"}
-            className={`${buttonBaseClasses} ${
+            className={`flex items-center px-4 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 transition-colors duration-150 ease-in-out shadow-sm ${
               hasToken
                 ? 'bg-emerald-600 hover:bg-emerald-700 text-white focus:ring-emerald-500'
                 : 'bg-slate-700 hover:bg-slate-600 text-slate-300 focus:ring-emerald-500'

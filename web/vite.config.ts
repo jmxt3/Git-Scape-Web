@@ -15,6 +15,18 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
+      },
+      build: {
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              vendor: ['react', 'react-dom'],
+              d3: ['d3'],
+              markdown: ['react-markdown', 'rehype-highlight'],
+              google: ['@google/genai']
+            }
+          }
+        }
       }
     };
 });

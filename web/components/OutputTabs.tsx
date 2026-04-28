@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { DigestOutput } from './DigestOutput';
 import { Diagram } from './Diagram';
-import { RepoChat } from './RepoChat';
 import { RawDiagramNode } from '../types';
 
 interface OutputTabsProps {
@@ -13,11 +12,10 @@ interface OutputTabsProps {
   repoNameForFilename: string | null; // This is just 'repo' for filename
   defaultBranch: string | null;
 
-  userProvidedGeminiApiKey: string | null;
   onOpenDiagramFullscreenModal: (data: RawDiagramNode, repoName: string, defaultBranch: string | null) => void;
 }
 
-type TabName = "Code Digest" | "Code Visualization" | "Code Assistant";
+type TabName = "Code Digest" | "Code Visualization";
 
 interface TabStyle {
   textColor: string;
@@ -27,7 +25,6 @@ interface TabStyle {
 const tabStyles: Record<TabName, TabStyle> = {
   "Code Digest": { textColor: "text-violet-400", borderColor: "border-violet-500" },
   "Code Visualization": { textColor: "text-green-400", borderColor: "border-green-500" },
-  "Code Assistant": { textColor: "text-sky-400", borderColor: "border-sky-500" },
 };
 
 export const OutputTabs: React.FC<OutputTabsProps> = ({
@@ -37,7 +34,6 @@ export const OutputTabs: React.FC<OutputTabsProps> = ({
   repoName,
   repoNameForFilename,
   defaultBranch,
-  userProvidedGeminiApiKey,
   onOpenDiagramFullscreenModal, // This prop name is from OutputTabsProps
 }) => {
   const [activeTab, setActiveTab] = useState<TabName>("Code Digest");
@@ -53,7 +49,7 @@ export const OutputTabs: React.FC<OutputTabsProps> = ({
   return (
     <div className="mt-8">
       <div className="mb-0 border-b border-slate-700 flex space-x-1">
-        {(["Code Digest", "Code Visualization", "Code Assistant"] as TabName[]).map((tabName) => {
+        {(["Code Digest", "Code Visualization"] as TabName[]).map((tabName) => {
           const isActive = activeTab === tabName;
           const currentTabStyle = tabStyles[tabName];
           const activeClasses = isActive
@@ -109,20 +105,7 @@ export const OutputTabs: React.FC<OutputTabsProps> = ({
           </div>
         )}
 
-        {activeTab === "Code Assistant" && (
-          <div
-            id="tabpanel-code-assistant"
-            role="tabpanel"
-            aria-labelledby="tab-code-assistant"
-            className="h-full"
-          >
-            <RepoChat
-              digest={digest}
-              repoName={repoName}
-              userProvidedGeminiApiKey={userProvidedGeminiApiKey}
-            />
-          </div>
-        )}
+
       </div>
     </div>
   );
