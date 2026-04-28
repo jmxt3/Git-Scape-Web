@@ -89,6 +89,9 @@ const App: React.FC = () => {
     null
   );
   const currentDefaultBranchForRequestRef = useRef<string | null>(null);
+  // Ref so callbacks always read the latest repoUrl without being in dep arrays
+  const repoUrlRef = useRef<string>(repoUrl);
+  useEffect(() => { repoUrlRef.current = repoUrl; }, [repoUrl]);
 
   useEffect(() => {
     try {
@@ -209,16 +212,21 @@ const App: React.FC = () => {
         primary_languages: newPrimaryLanguages,
       };
 
-      const cacheKey = `${CACHED_OUTPUT_PREFIX}${repoUrl}`;
-      try {
-        storeInLocalStorage(cacheKey, JSON.stringify(repoDataToCache));
-      } catch (e) {
-        // storeInLocalStorage already logs a warning
-      }
+      // Defer the localStorage write to avoid blocking the main thread.
+      // JSON.stringify on a large digest is synchronous and can freeze the UI.
+      const cacheKey = `${CACHED_OUTPUT_PREFIX}${repoUrlRef.current}`;
+      setTimeout(() => {
+        try {
+          storeInLocalStorage(cacheKey, JSON.stringify(repoDataToCache));
+        } catch (e) {
+          // quota exceeded or serialization error — non-fatal
+        }
+      }, 0);
     },
+    // Only stable references — state setters and the github service.
+    // repoUrl is read via repoUrlRef.current so it doesn't need to be here.
     [
       githubService,
-      repoUrl,
       setDigest,
       setCurrentDefaultBranch,
       setFilesToRenderInDiagram,
@@ -381,24 +389,14 @@ const App: React.FC = () => {
     };
 
     initiateRequest();
+  // Only truly stable or necessary deps. Volatile state (isLoading, error,
+  // digest, progressPercent) is intentionally omitted — they caused the
+  // callback to be recreated on every render, triggering render loops.
   }, [
     repoUrl,
     githubToken,
     githubService,
-    isLoading,
-    error,
-    digest,
-    progressPercent,
     processSuccessfulDigestData,
-    setProcessedRepoName,
-    setRepoNameForFilename,
-    setCurrentDefaultBranch,
-    setFilesToRenderInDiagram,
-    setDigest,
-    setError,
-    setIsLoading,
-    setProgressMessage,
-    setProgressPercent,
   ]);
 
 
