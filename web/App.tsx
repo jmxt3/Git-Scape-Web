@@ -682,7 +682,7 @@ const App: React.FC = () => {
           </svg>
           <div className="text-center w-full flex flex-col items-center mt-12">
             <h1 className="text-4xl sm:text-5xl sm:pt-12 lg:pt-5 md:text-6xl lg:text-7xl font-bold tracking-tighter w-full inline-block relative">
-              Add Skills To Your Agents
+              Turn Repos into Skills. Give Your Agents the Knowledge to Act.
             </h1>
           </div>
           <svg
